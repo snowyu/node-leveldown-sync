@@ -19,4 +19,8 @@
 #  include "port/port_posix.h"
 #endif
 
+#ifndef SIZE_MAX
+#  define SIZE_MAX     UINT32_MAX
+#endif
+
 #endif  // STORAGE_LEVELDB_PORT_PORT_H_
