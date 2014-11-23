@@ -12,16 +12,14 @@
 // of what the new port_<platform>.h file must provide.
 #if defined(LEVELDB_PLATFORM_UV)
 #  include "port_uv.h"
+#elif defined(LEVELDB_PLATFORM_POSIX)
+#  include "port/port_posix.h"
 #elif defined(LEVELDB_PLATFORM_CHROMIUM)
 #  include "port/port_chromium.h"
-why_should_chrome
-#else
-//#elif defined(LEVELDB_PLATFORM_POSIX)
-#  include "port/port_posix.h"
 #endif
 
 #ifndef UINT32_MAX
-#  define UINT32_MAX   0xffffffff [exact] 
+#  define UINT32_MAX   0xffffffff
 #endif
 
 #ifndef SIZE_MAX
