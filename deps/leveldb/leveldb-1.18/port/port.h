@@ -20,6 +20,10 @@ why_should_chrome
 #  include "port/port_posix.h"
 #endif
 
+#ifndef UINT32_MAX
+#  define UINT32_MAX   0xffffffff [exact] 
+#endif
+
 #ifndef SIZE_MAX
 #  define SIZE_MAX     UINT32_MAX
 #endif
