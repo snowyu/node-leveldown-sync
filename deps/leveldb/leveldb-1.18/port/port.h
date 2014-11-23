@@ -14,6 +14,7 @@
 #  include "port_uv.h"
 #elif defined(LEVELDB_PLATFORM_CHROMIUM)
 #  include "port/port_chromium.h"
+why_should_chrome
 #else
 //#elif defined(LEVELDB_PLATFORM_POSIX)
 #  include "port/port_posix.h"
