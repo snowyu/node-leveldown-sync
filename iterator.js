@@ -1,5 +1,5 @@
 const util             = require('util')
-    , AbstractIterator = require('abstract-leveldown').AbstractIterator
+    , AbstractIterator = require('abstract-nosql').AbstractIterator
 
 
 function Iterator (db, options) {
@@ -13,11 +13,32 @@ function Iterator (db, options) {
 
 util.inherits(Iterator, AbstractIterator)
 
-Iterator.prototype.nextSync = function () {
-  return this.binding.nextSync();
+Iterator.prototype._nextSync = function () {
+  var key, value
+
+  if (this.cache && this.cache.length) {
+    key   = this.cache.pop()
+    value = this.cache.pop()
+
+  } else if (this.finished) {
+    return false
+  } else {
+    var result = this.binding.nextSync()
+
+    this.cache    = result[0]
+    this.finished = result[1] <= 0
+    if (this.cache && this.cache.length) {
+      key   = this.cache.pop()
+      value = this.cache.pop()
+    } else {
+      return false
+    }
+  }
+
+  return [key, value]
 }
 
-Iterator.prototype.endSync = function () {
+Iterator.prototype._endSync = function () {
   return this.binding.endSync();
 }
 

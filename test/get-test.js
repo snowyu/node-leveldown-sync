@@ -1,7 +1,7 @@
 const test       = require('tap').test
-    , testCommon = require('abstract-leveldown/testCommon')
+    , testCommon = require('abstract-nosql/testCommon')
     , leveldown  = require('../')
-    , abstract   = require('abstract-leveldown/abstract/get-test')
+    , abstract   = require('abstract-nosql/abstract/get-test')
 
 if (require.main === module)
   abstract.all(leveldown, test, testCommon)

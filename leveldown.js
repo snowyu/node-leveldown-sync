@@ -1,5 +1,5 @@
 const util              = require('util')
-    , AbstractLevelDOWN = require('abstract-leveldown').AbstractLevelDOWN
+    , AbstractLevelDOWN = require('abstract-nosql').AbstractLevelDOWN
 
     , binding           = require('bindings')('leveldown.node').leveldown
 
@@ -99,6 +99,7 @@ LevelDOWN.prototype.getProperty = function (property) {
   return this.binding.getProperty(property)
 }
 
+LevelDOWN.prototype.IteratorClass = Iterator
 
 LevelDOWN.prototype._iterator = function (options) {
   return new Iterator(this, options)

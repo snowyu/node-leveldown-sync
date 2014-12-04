@@ -211,8 +211,6 @@ function iteratorAsync (cb) {
         }
         else if (key && value) {
           received++
-          result.push(key)
-          result.push(value)
           process.nextTick(next)
         } else { // end
           iterator.end(function () {
@@ -241,8 +239,6 @@ function iteratorStrAsync (cb) {
         }
         else if (key && value) {
           received++
-          result.push(key)
-          result.push(value)
           process.nextTick(next)
         } else { // end
           iterator.end(function () {
@@ -272,7 +268,6 @@ function iteratorStrAsyncDirect (cb) {
           return
         }
         received += arr.length / 2
-        result = result.concat(arr)
         if (!finished) {
           process.nextTick(next)
         } else { // end
@@ -289,6 +284,26 @@ function iteratorStrAsyncDirect (cb) {
     next();
 }
 
+function iteratorStrSync () {
+  if (!leveldown.putSync) {
+    return;
+  }
+  start = Date.now();
+
+  var received = 0;
+  var iterator = leveldown.iterator({keyAsBuffer: false, valueAsBuffer:false, highWaterMark: 16*1024*8}); //, highWaterMark: 16*1024*22, 22 will get all at once.
+  var results = [];
+  var result = iterator.nextSync();
+  while (result) {
+    received++;
+    result = iterator.nextSync();
+  }
+  var duration = Date.now()-start;
+  assert(received == count);
+  log(true, received, 'iterator', duration, "");
+  iterator.endSync()
+}
+
 function iteratorStrSyncDirect () {
   if (!leveldown.putSync) {
     return;
@@ -297,18 +312,12 @@ function iteratorStrSyncDirect () {
 
   var received = 0;
   var iterator = leveldown.iterator({keyAsBuffer: false, valueAsBuffer:false, highWaterMark: 16*1024*8}); //, highWaterMark: 16*1024*22, 22 will get all at once.
-  var result = [];
-  var results = iterator.nextSync(result);
-  var size = results[1];
-  while (size > 0) {
-    result = result.concat(results[0])
-    received += size;
-    //result = [];
-    results = iterator.nextSync(result);
-    size = results[1];
+  var results = iterator.binding.nextSync();
+  while (results[1]>0) {
+    received += results[1];
+    results = iterator.binding.nextSync();
   }
-  result = result.concat(results[0])
-  received += Math.abs(size);
+  received += -(results[1]);
   var duration = Date.now()-start;
   assert(received == count);
   log(true, received, 'iterator', duration, "directly");
@@ -336,6 +345,7 @@ putAsync(function () {
         iteratorAsync(function(){
           iteratorStrAsync(function(){
             iteratorStrAsyncDirect(function(){
+              iteratorStrSync()
               iteratorStrSyncDirect()
               console.log()
             })

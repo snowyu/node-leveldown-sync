@@ -3,7 +3,7 @@ const test         = require('tap').test
     , path         = require('path')
     , mkfiletree   = require('mkfiletree')
     , readfiletree = require('readfiletree')
-    , testCommon   = require('abstract-leveldown/testCommon')
+    , testCommon   = require('abstract-nosql/testCommon')
     , leveldown    = require('../')
     , makeTest     = require('./make-test')
 

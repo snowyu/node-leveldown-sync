@@ -1,5 +1,5 @@
 const test          = require('tap').test
-    , testCommon    = require('abstract-leveldown/testCommon')
+    , testCommon    = require('abstract-nosql/testCommon')
     , leveldown     = require('../')
     , child_process = require('child_process') 
 

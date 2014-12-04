@@ -1,5 +1,5 @@
 const util                 = require('util')
-    , AbstractChainedBatch = require('abstract-leveldown').AbstractChainedBatch
+    , AbstractChainedBatch = require('abstract-nosql').AbstractChainedBatch
 
 
 function ChainedBatch (db) {

@@ -6,13 +6,15 @@ LevelDOWN
 A Low-level Node.js LevelDB binding
 -------------------------
 
-[![Build Status](https://secure.travis-ci.org/rvagg/node-leveldown.png)](http://travis-ci.org/rvagg/node-leveldown)
+[![Build Status](https://secure.travis-ci.org/snowyu/node-leveldown-sync.png)](http://travis-ci.org/snowyu/node-leveldown-sync)
 
-[![NPM](https://nodei.co/npm/leveldown.png?stars&downloads&downloadRank)](https://nodei.co/npm/leveldown/) [![NPM](https://nodei.co/npm-dl/leveldown.png?months=6&height=3)](https://nodei.co/npm/leveldown/)
+[![NPM](https://nodei.co/npm/leveldown-sync.png?stars&downloads&downloadRank)](https://nodei.co/npm/leveldown-sync/) [![NPM](https://nodei.co/npm-dl/leveldown-sync.png?months=6&height=3)](https://nodei.co/npm/leveldown-sync/)
 
 LevelDOWN was extracted from [LevelUP](https://github.com/rvagg/node-levelup) and now serves as a stand-alone binding for LevelDB.
 
-It is **strongly recommended** that you use LevelUP in preference to LevelDOWN unless you have measurable performance reasons to do so. LevelUP is optimised for usability and safety. Although we are working to improve the safety of the LevelDOWN interface it is still easy to crash your Node process if you don't do things in just the right way.
+Leveldown-sync adds the synchronous methods supports to LevelDOWN.
+
+It is **strongly recommended** that you use LevelUP-sync in preference to LevelDOWN unless you have measurable performance reasons to do so. LevelUP is optimised for usability and safety. Although we are working to improve the safety of the LevelDOWN interface it is still easy to crash your Node process if you don't do things in just the right way.
 
 See the section on <a href="#safety">safety</a> below for details of known unsafe operations with LevelDOWN.
 
@@ -30,11 +32,66 @@ Tested & supported platforms
 
 ## Chnages
 
-+ add the sync methods supports for open, put, get, del, batch, approximateSize.
++ Add the synchronous methods supports for open, put, get, del, batch, approximateSize.
+  * the methods will be executed as sync method if no callback argument passed.
+  * if any error occurs it will throw exception.
+  * Or call openSync, putSync, getSync, delSync, batchSync, approximateSizeSync directly.
++ Add iterator.nextSync, iterator.endSync synchronous methods
+* Optimize the iterator performance and fix memory leaks.
+* Update the LevelDB to 1.18 and Snappy to 1.1.2
 
-the methods will be executed as sync method if no callback argument passed.
-if any error occurs it will throw exception.
-* Or call openSync, putSync, getSync, delSync, batchSync, approximateSizeSync directly.
+
+## Performance
+
+run bench/bench.js to see a simple performance compare:
+
+the original leveldown bench result:
+
+```bash
+
+  benchmarking with 12,000 records, 24 chars each
+
+          put :    29,411 w/s in    408ms
+
+        batch :   101,694 w/s in    118ms
+
+          get :    35,398 r/s in    339ms        (asBuffer)
+          get :    44,444 r/s in    270ms
+
+     iterator :    58,823 r/s in    204ms        (asBuffer)
+     iterator :   127,659 r/s in     94ms
+     iterator :   148,148 r/s in     81ms        (directly)
+
+```
+
+The new leveldown-sync bench result:
+
+```bash
+
+benchmarking with 12,000 records, 24 chars each
+
+          put :    30,000 w/s in    400ms
+      putSync :    74,074 w/s in    162ms
+      putSync :    77,922 w/s in    154ms        (directly)
+
+        batch :   121,212 w/s in     99ms
+    batchSync :   179,104 w/s in     67ms
+    batchSync :   200,000 w/s in     60ms        (directly)
+
+          get :    36,036 r/s in    333ms        (asBuffer)
+          get :    56,338 r/s in    213ms
+      getSync :    79,470 r/s in    151ms        (asBuffer)
+      getSync :   255,319 r/s in     47ms
+      getSync :   260,869 r/s in     46ms        (directly)
+
+     iterator :    94,488 r/s in    127ms        (asBuffer)
+     iterator :   153,846 r/s in     78ms
+     iterator :   342,857 r/s in     35ms        (directly)
+ iteratorSync :   292,682 r/s in     41ms
+ iteratorSync :   300,000 r/s in     40ms        (directly)
+
+```
+
 
 <a name="api"></a>
 ## API
