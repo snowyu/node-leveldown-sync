@@ -6,7 +6,7 @@ branches:
     - master
 notifications:
   email:
-    - rod@vagg.org
+    - snowyu.lee@gmail.com
 script: npm test
 
 before_install:
