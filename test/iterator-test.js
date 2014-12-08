@@ -3,5 +3,6 @@ const test       = require('tap').test
     , leveldown  = require('../')
     , abstract   = require('abstract-nosql/abstract/iterator-test')
 
-if (require.main === module)
+if (require.main === module) {
   abstract.all(leveldown, test, testCommon)
+}

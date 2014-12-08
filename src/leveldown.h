@@ -47,10 +47,6 @@ static inline void DisposeStringOrBufferFromSlice(
   if (from->IsNull() || from->IsUndefined()) {                                 \
     to ## Sz_ = 0;                                                             \
     to ## Ch_ = 0;                                                             \
-  } else if (!from->ToObject().IsEmpty()                                       \
-      && node::Buffer::HasInstance(from->ToObject())) {                        \
-    to ## Sz_ = node::Buffer::Length(from->ToObject());                        \
-    to ## Ch_ = node::Buffer::Data(from->ToObject());                          \
   } else {                                                                     \
     v8::Local<v8::String> to ## Str = from->ToString();                        \
     to ## Sz_ = to ## Str->Utf8Length();                                       \
