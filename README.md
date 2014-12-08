@@ -276,6 +276,11 @@ The optional `options` object may contain:
 * `'valueAsBuffer'` *(boolean, default: `true`)*: Used to determine whether to return the `value` of each entry as a `String` or a Node.js `Buffer` object.
 
 
+When all three simultaneously, their priority is as follows:
+
+* start < lte < lt
+* end < gte < gt
+
 --------------------------------------------------------
 <a name="iterator_next"></a>
 ### iterator#next(callback)

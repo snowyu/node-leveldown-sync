@@ -516,36 +516,6 @@ NAN_METHOD(Iterator::New) {
             NanNew("highWaterMark")))->Value();
     }
 
-    if (optionsObj->Has(NanNew("lt"))
-        && (node::Buffer::HasInstance(optionsObj->Get(NanNew("lt")))
-          || optionsObj->Get(NanNew("lt"))->IsString())) {
-
-      v8::Local<v8::Value> ltBuffer = optionsObj->Get(NanNew("lt"));
-
-      // ignore end if it has size 0 since a Slice can't have length 0
-      if (StringOrBufferLength(ltBuffer) > 0) {
-        LD_STRING_OR_BUFFER_TO_SLICE(_lt, ltBuffer, lt)
-        if (reverse) {
-          if (!start || _lt.ToString() <= start->ToString()) {
-            if (start) {
-              delete[] start->data();
-              delete start;
-            }
-            start = new leveldb::Slice(_lt.data(), _lt.size());
-            skipStart = true;
-          } else
-            delete[] _lt.data();
-        }
-        else {
-          if (end.empty() || _lt.ToString() <= end) {
-            end = std::string(_lt.data(), _lt.size());
-            skipEnd = true;
-          }
-          delete[] _lt.data();
-        }
-      }
-    }
-
     if (optionsObj->Has(NanNew("lte"))
         && (node::Buffer::HasInstance(optionsObj->Get(NanNew("lte")))
           || optionsObj->Get(NanNew("lte"))->IsString())) {
@@ -557,52 +527,52 @@ NAN_METHOD(Iterator::New) {
         LD_STRING_OR_BUFFER_TO_SLICE(_lte, lteBuffer, lte)
         //lte = new std::string(_lte.data(), _lte.size());
         if (reverse) {
-          if (!start || _lte.ToString() < start->ToString()) {
+          //if (!start || _lte.ToString() < start->ToString()) {
             if (start) {
               delete[] start->data();
               delete start;
             }
             start = new leveldb::Slice(_lte.data(), _lte.size());
             skipStart = false;
-          } else
-            delete[] _lte.data();
+          //} else
+          //  delete[] _lte.data();
         }
         else {
-          if (end.empty() || _lte.ToString() < end) {
+          //if (end.empty() || _lte.ToString() < end) {
             end = std::string(_lte.data(), _lte.size());
             skipEnd = false;
-          }
+          //}
           delete[] _lte.data();
         }
       }
     }
 
-    if (optionsObj->Has(NanNew("gt"))
-        && (node::Buffer::HasInstance(optionsObj->Get(NanNew("gt")))
-          || optionsObj->Get(NanNew("gt"))->IsString())) {
+    if (optionsObj->Has(NanNew("lt"))
+        && (node::Buffer::HasInstance(optionsObj->Get(NanNew("lt")))
+          || optionsObj->Get(NanNew("lt"))->IsString())) {
 
-      v8::Local<v8::Value> gtBuffer = optionsObj->Get(NanNew("gt"));
+      v8::Local<v8::Value> ltBuffer = optionsObj->Get(NanNew("lt"));
 
       // ignore end if it has size 0 since a Slice can't have length 0
-      if (StringOrBufferLength(gtBuffer) > 0) {
-        LD_STRING_OR_BUFFER_TO_SLICE(_gt, gtBuffer, gt)
-        //gt = new std::string(_gt.data(), _gt.size());
-        if (!reverse) {
-          if (!start || _gt.ToString() >= start->ToString()) {
+      if (StringOrBufferLength(ltBuffer) > 0) {
+        LD_STRING_OR_BUFFER_TO_SLICE(_lt, ltBuffer, lt)
+        if (reverse) {
+          //if (!start || _lt.ToString() <= start->ToString()) {
             if (start) {
               delete[] start->data();
               delete start;
             }
-            start = new leveldb::Slice(_gt.data(), _gt.size());
+            start = new leveldb::Slice(_lt.data(), _lt.size());
             skipStart = true;
-          } else
-            delete[] _gt.data();
-        } else {
-          if (end.empty() || _gt.ToString() >= end) {
-            end = std::string(_gt.data(), _gt.size());
+          //} else
+          //  delete[] _lt.data();
+        }
+        else {
+          //if (end.empty() || _lt.ToString() <= end) {
+            end = std::string(_lt.data(), _lt.size());
             skipEnd = true;
-          }
-          delete[] _gt.data();
+          //}
+          delete[] _lt.data();
         }
       }
     }
@@ -618,21 +588,51 @@ NAN_METHOD(Iterator::New) {
         LD_STRING_OR_BUFFER_TO_SLICE(_gte, gteBuffer, gte)
         //gte = new std::string(_gte.data(), _gte.size());
         if (!reverse) {
-          if (!start || _gte.ToString() > start->ToString()) {
+          //if (!start || _gte.ToString() > start->ToString()) {
             if (start) {
               delete[] start->data();
               delete start;
             }
             start = new leveldb::Slice(_gte.data(), _gte.size());
             skipStart = false;
-          } else
-            delete[] _gte.data();
+          //} else
+          //  delete[] _gte.data();
         } else {
-          if (end.empty() || _gte.ToString() > end) {
+          //if (end.empty() || _gte.ToString() > end) {
             end = std::string(_gte.data(), _gte.size());
             skipEnd = false;
-          }
+          //}
           delete[] _gte.data();
+        }
+      }
+    }
+
+    if (optionsObj->Has(NanNew("gt"))
+        && (node::Buffer::HasInstance(optionsObj->Get(NanNew("gt")))
+          || optionsObj->Get(NanNew("gt"))->IsString())) {
+
+      v8::Local<v8::Value> gtBuffer = optionsObj->Get(NanNew("gt"));
+
+      // ignore end if it has size 0 since a Slice can't have length 0
+      if (StringOrBufferLength(gtBuffer) > 0) {
+        LD_STRING_OR_BUFFER_TO_SLICE(_gt, gtBuffer, gt)
+        //gt = new std::string(_gt.data(), _gt.size());
+        if (!reverse) {
+          //if (!start || _gt.ToString() >= start->ToString()) {
+            if (start) {
+              delete[] start->data();
+              delete start;
+            }
+            start = new leveldb::Slice(_gt.data(), _gt.size());
+            skipStart = true;
+          //} else
+          //  delete[] _gt.data();
+        } else {
+          //if (end.empty() || _gt.ToString() >= end) {
+            end = std::string(_gt.data(), _gt.size());
+            skipEnd = true;
+          //}
+          delete[] _gt.data();
         }
       }
     }
@@ -652,7 +652,6 @@ NAN_METHOD(Iterator::New) {
     , true
   );
   bool fillCache = NanBooleanOptionValue(optionsObj, NanNew("fillCache"));
-
   Iterator* iterator = new Iterator(
       database
     , (uint32_t)id->Int32Value()
