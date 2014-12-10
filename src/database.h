@@ -109,6 +109,7 @@ private:
   static NAN_METHOD(DeleteSync);
   static NAN_METHOD(BatchSync);
   static NAN_METHOD(GetSync);
+  static NAN_METHOD(IsExistsSync);
 };
 
 } // namespace leveldown

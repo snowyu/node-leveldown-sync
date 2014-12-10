@@ -160,6 +160,7 @@ void Database::Init () {
   NODE_SET_PROTOTYPE_METHOD(tpl, "approximateSizeSync", Database::ApproximateSizeSync);
   NODE_SET_PROTOTYPE_METHOD(tpl, "getProperty", Database::GetProperty);
   NODE_SET_PROTOTYPE_METHOD(tpl, "iterator", Database::Iterator);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "isExistsSync", Database::IsExistsSync);
 }
 
 NAN_METHOD(Database::New) {
@@ -491,6 +492,40 @@ NAN_METHOD(Database::Put) {
   NanReturnUndefined();
 }
 
+
+//IsExists(Key, fillCache=true)
+NAN_METHOD(Database::IsExistsSync) {
+  NanScope();
+
+  leveldown::Database* database = node::ObjectWrap::Unwrap<leveldown::Database>(args.This());
+
+  if (args.Length() == 0) {
+      NanThrowError("IsExistsSync requires the key argument.");
+      NanReturnUndefined();
+  }
+
+  v8::String::Utf8Value key(args[0]->ToString());
+  bool result = false;
+  bool fillCache = true;
+  std::string value;
+  if (args.Length() > 1 && args[1]->IsBoolean()) fillCache = args[1]->BooleanValue();
+
+  leveldb::ReadOptions options = leveldb::ReadOptions();
+  options.fill_cache = fillCache;
+  //if (!fillCache) options.fill_cache = false; //the default is true.
+  leveldb::Status status = database->db->Get(options, *key, &value);
+
+  if (status.ok()) {
+    result = true;
+  } else if (!status.IsNotFound()){
+    NanThrowError(status.ToString().c_str());
+    NanReturnUndefined();
+  }
+
+  v8::Local<v8::Value> returnValue = NanNew<v8::Boolean>(result);
+  //printf("\ndb.get(%s)=%s\n", *key, *NanUtf8String(returnValue));
+  NanReturnValue(returnValue);
+}
 
 //getSync(aKey, fillCache=true)
 NAN_METHOD(Database::GetSync) {

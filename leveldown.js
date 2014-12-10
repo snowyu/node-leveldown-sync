@@ -29,6 +29,15 @@ LevelDOWN.prototype._close = function (callback) {
   this.binding.close(callback)
 }
 
+LevelDOWN.prototype._isExistsSync = function (key, options) {
+  var fillCache = true;
+  if (typeof options === 'object') {
+    if (options.fillCache === false) fillCache = false;
+  }
+  var result = this.binding.isExistsSync(key, fillCache);
+  return result;
+}
+
 LevelDOWN.prototype._getSync = function (key, options) {
   var fillCache = true;
   var asBuffer = false;
