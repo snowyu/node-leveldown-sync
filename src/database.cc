@@ -426,7 +426,7 @@ NAN_METHOD(Database::PutSync) {
   leveldown::Database* database = node::ObjectWrap::Unwrap<leveldown::Database>(args.This());
 
   if (args.Length() < 2) {
-      NanThrowError("PutSync requires the key and value argument.");
+      NanThrowError("PutSync requires the key and value argument.", kInvalidArgument);
       NanReturnUndefined();
   }
 
@@ -440,7 +440,8 @@ NAN_METHOD(Database::PutSync) {
   leveldb::Status status = database->db->Put(options, *key, *value);
 
   if (!status.ok()) {
-    NanThrowError(status.ToString().c_str());
+    Status* st = reinterpret_cast<Status*>(&status);
+    NanThrowError(status.ToString().c_str(), st->code());
     NanReturnUndefined();
   }
 
@@ -467,7 +468,8 @@ NAN_METHOD(Database::Put) {
       DisposeStringOrBufferFromSlice(valueHandle, value);
 
       if (!status.ok()) {
-        NanThrowError(status.ToString().c_str());
+        Status* st = reinterpret_cast<Status*>(&status);
+        NanThrowError(status.ToString().c_str(), st->code());
         NanReturnUndefined();
       }
 
@@ -500,7 +502,7 @@ NAN_METHOD(Database::IsExistsSync) {
   leveldown::Database* database = node::ObjectWrap::Unwrap<leveldown::Database>(args.This());
 
   if (args.Length() == 0) {
-      NanThrowError("IsExistsSync requires the key argument.");
+      NanThrowError("IsExistsSync requires the key argument.", kInvalidArgument);
       NanReturnUndefined();
   }
 
@@ -518,7 +520,8 @@ NAN_METHOD(Database::IsExistsSync) {
   if (status.ok()) {
     result = true;
   } else if (!status.IsNotFound()){
-    NanThrowError(status.ToString().c_str());
+    Status* st = reinterpret_cast<Status*>(&status);
+    NanThrowError(status.ToString().c_str(), st->code());
     NanReturnUndefined();
   }
 
@@ -534,7 +537,7 @@ NAN_METHOD(Database::GetSync) {
   leveldown::Database* database = node::ObjectWrap::Unwrap<leveldown::Database>(args.This());
 
   if (args.Length() == 0) {
-      NanThrowError("GetSync requires the key argument.");
+      NanThrowError("GetSync requires the key argument.", kInvalidArgument);
       NanReturnUndefined();
   }
 
@@ -545,11 +548,11 @@ NAN_METHOD(Database::GetSync) {
 
   leveldb::ReadOptions options = leveldb::ReadOptions();
   options.fill_cache = fillCache;
-  //if (!fillCache) options.fill_cache = false; //the default is true.
   leveldb::Status status = database->db->Get(options, *key, &value);
 
   if (!status.ok()) {
-    NanThrowError(status.ToString().c_str());
+    Status* st = reinterpret_cast<Status*>(&status);
+    NanThrowError(status.ToString().c_str(), st->code());
     NanReturnUndefined();
   }
 
@@ -577,7 +580,8 @@ NAN_METHOD(Database::Get) {
       DisposeStringOrBufferFromSlice(keyHandle, key);
 
       if (!status.ok()) {
-        NanThrowError(status.ToString().c_str());
+        Status* st = reinterpret_cast<Status*>(&status);
+        NanThrowError(status.ToString().c_str(), st->code());
         NanReturnUndefined();
       }
 
@@ -611,7 +615,7 @@ NAN_METHOD(Database::DeleteSync) {
   leveldown::Database* database = node::ObjectWrap::Unwrap<leveldown::Database>(args.This());
 
   if (args.Length() == 0) {
-      NanThrowError("delSync requires the key argument.");
+      NanThrowError("delSync requires the key argument.", kInvalidArgument);
       NanReturnUndefined();
   }
 
@@ -624,7 +628,8 @@ NAN_METHOD(Database::DeleteSync) {
   leveldb::Status status = database->db->Delete(options, *key);
 
   if (!status.ok()) {
-    NanThrowError(status.ToString().c_str());
+    Status* st = reinterpret_cast<Status*>(&status);
+    NanThrowError(status.ToString().c_str(), st->code());
     NanReturnUndefined();
   }
 
@@ -648,7 +653,8 @@ NAN_METHOD(Database::Delete) {
       DisposeStringOrBufferFromSlice(keyHandle, key);
 
       if (!status.ok()) {
-        NanThrowError(status.ToString().c_str());
+        Status* st = reinterpret_cast<Status*>(&status);
+        NanThrowError(status.ToString().c_str(), st->code());
         NanReturnUndefined();
       }
 
@@ -676,12 +682,12 @@ NAN_METHOD(Database::BatchSync) {
   leveldown::Database* database = node::ObjectWrap::Unwrap<leveldown::Database>(args.This());
 
   if (args.Length() == 0) {
-    NanThrowError("batchSync requires the batch(operations) argument.");
+    NanThrowError("batchSync requires the batch(operations) argument.", kInvalidArgument);
     NanReturnUndefined();
   }
   if (!database->db)
   {
-    NanThrowError("database is not opened.");
+    NanThrowError("database is not opened.", kNotOpened);
     NanReturnUndefined();
   }
 
@@ -721,8 +727,9 @@ NAN_METHOD(Database::BatchSync) {
     leveldb::Status status = database->db->Write(options, &batch);
 
     if (!status.ok()) {
-        NanThrowError(status.ToString().c_str());
-        NanReturnUndefined();
+      Status* st = reinterpret_cast<Status*>(&status);
+      NanThrowError(status.ToString().c_str(), st->code());
+      NanReturnUndefined();
     }
     NanReturnValue(NanTrue());
   }
@@ -788,7 +795,8 @@ NAN_METHOD(Database::Batch) {
       delete batch;
 
       if (!status.ok()) {
-        NanThrowError(status.ToString().c_str());
+        Status* st = reinterpret_cast<Status*>(&status);
+        NanThrowError(status.ToString().c_str(), st->code());
         NanReturnUndefined();
       }
       NanReturnValue(NanTrue());
@@ -819,7 +827,7 @@ NAN_METHOD(Database::ApproximateSizeSync) {
   NanScope();
 
   if (args.Length() < 2) {
-    NanThrowError("ApproximateSizeSync requires the start and end arguments.");
+    NanThrowError("ApproximateSizeSync requires the start and end arguments.", kInvalidArgument);
     NanReturnUndefined();
   }
   leveldown::Database* database = node::ObjectWrap::Unwrap<leveldown::Database>(args.This());

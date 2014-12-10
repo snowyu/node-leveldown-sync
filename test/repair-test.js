@@ -4,6 +4,7 @@ const test         = require('tap').test
     , mkfiletree   = require('mkfiletree')
     , readfiletree = require('readfiletree')
     , testCommon   = require('abstract-nosql/testCommon')
+    , AbstractError= require('abstract-nosql/abstract-error').AbstractError
     , leveldown    = require('../')
     , makeTest     = require('./make-test')
 
@@ -27,7 +28,9 @@ test('test callback-less, 1-arg, repair() throws', function (t) {
 
 test('test repair non-existant directory returns error', function (t) {
   leveldown.repair('/1/2/3/4', function (err) {
-    t.like(/no such/i, err, 'error on callback')
+    console.log(err.message)
+    t.ok((/no such/i).test(err.message), 'error on callback')
+    t.equal(err.code, AbstractError.IO)
     t.end()
   })
 })

@@ -1,10 +1,12 @@
 const util              = require('util')
     , AbstractLevelDOWN = require('abstract-nosql').AbstractLevelDOWN
+    , Errors            = require('abstract-nosql/abstract-error')
 
     , binding           = require('bindings')('leveldown.node').leveldown
 
     , ChainedBatch      = require('./chained-batch')
     , Iterator          = require('./iterator')
+    , InvalidArgumentError = Errors.InvalidArgumentError
 
 
 function LevelDOWN (location) {
@@ -117,13 +119,13 @@ LevelDOWN.prototype._iterator = function (options) {
 
 LevelDOWN.destroy = function (location, callback) {
   if (arguments.length < 2)
-    throw new Error('destroy() requires `location` and `callback` arguments')
+    throw new InvalidArgumentError('destroy() requires `location` and `callback` arguments')
 
   if (typeof location != 'string')
-    throw new Error('destroy() requires a location string argument')
+    throw new InvalidArgumentError('destroy() requires a location string argument')
 
   if (typeof callback != 'function')
-    throw new Error('destroy() requires a callback function argument')
+    throw new InvalidArgumentError('destroy() requires a callback function argument')
 
   binding.destroy(location, callback)
 }
@@ -131,13 +133,13 @@ LevelDOWN.destroy = function (location, callback) {
 
 LevelDOWN.repair = function (location, callback) {
   if (arguments.length < 2)
-    throw new Error('repair() requires `location` and `callback` arguments')
+    throw new InvalidArgumentError('repair() requires `location` and `callback` arguments')
 
   if (typeof location != 'string')
-    throw new Error('repair() requires a location string argument')
+    throw new InvalidArgumentError('repair() requires a location string argument')
 
   if (typeof callback != 'function')
-    throw new Error('repair() requires a callback function argument')
+    throw new InvalidArgumentError('repair() requires a callback function argument')
 
   binding.repair(location, callback)
 }

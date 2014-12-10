@@ -26,14 +26,37 @@ public:
   }
 
 protected:
+  void HandleErrorCallback() {
+    NanScope();
+
+    v8::Local<v8::Value> err = v8::Exception::Error(NanNew<v8::String>(ErrorMessage()));
+    if (hasErrorCode) {
+      v8::Local<v8::Object> obj = err.As<v8::Object>();
+      obj->Set(NanNew<v8::String>("code"), NanNew<v8::Integer>(errorCode));
+    }
+
+    v8::Local<v8::Value> argv[] = {err};
+    callback->Call(1, argv);
+  }
+
+  void SetErrorCode(const char *msg, const int code) {
+    SetErrorMessage(msg);
+    hasErrorCode = true;
+    errorCode=code;
+  }
+
   void SetStatus(leveldb::Status status) {
     this->status = status;
-    if (!status.ok())
-      SetErrorMessage(status.ToString().c_str());
+    if (!status.ok()) {
+      Status* st = reinterpret_cast<Status*>(&status);
+      SetErrorCode(status.ToString().c_str(), st->code());
+    }
   }
   Database* database;
 private:
   leveldb::Status status;
+  bool hasErrorCode;
+  int errorCode;
 };
 
 } // namespace leveldown

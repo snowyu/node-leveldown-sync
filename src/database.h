@@ -15,10 +15,19 @@
 #include <leveldb/filter_policy.h>
 #include <nan.h>
 
+#include "leveldb_status.h"
 #include "leveldown.h"
 #include "iterator.h"
 
 namespace leveldown {
+
+const int kOk = 0;
+const int kNotFound = 1;
+const int kCorruption = 2;
+const int kNotSupported = 3;
+const int kInvalidArgument = 4;
+const int kIOError = 5;
+const int kNotOpened = 6;
 
 NAN_METHOD(LevelDOWN);
 

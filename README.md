@@ -32,6 +32,7 @@ Tested & supported platforms
 
 ## Chnages
 
++ Add the AbstractError and error code supports.
 + Add the isExists supports to test the key whether exists.
 + Add the synchronous methods supports for open, put, get, del, batch, approximateSize.
   * the methods will be executed as sync method if no callback argument passed.
