@@ -88,8 +88,9 @@ public:
   Database (NanUtf8String* location);
   ~Database ();
 
-private:
+public:
   leveldb::DB* db;
+private:
   const leveldb::FilterPolicy* filterPolicy;
   leveldb::Cache* blockCache;
   NanUtf8String* location;
