@@ -103,10 +103,14 @@ inline void Iterator::InitDbIterator() {
     }
   }
   else {
-    if (noReverse)
+    if (noReverse) {
       dbIterator->SeekToFirst();
-    else
+      if (skipStart) dbIterator->Next();
+    }
+    else {
       dbIterator->SeekToLast();
+      if (skipStart) dbIterator->Prev();
+    }
   }
 }
 
@@ -548,32 +552,30 @@ NAN_METHOD(Iterator::New) {
       }
     }
 
-    if (optionsObj->Has(NanNew("lt"))
-        && (node::Buffer::HasInstance(optionsObj->Get(NanNew("lt")))
-          || optionsObj->Get(NanNew("lt"))->IsString())) {
-
+    if (optionsObj->Has(NanNew("lt"))) {
       v8::Local<v8::Value> ltBuffer = optionsObj->Get(NanNew("lt"));
-
-      // ignore end if it has size 0 since a Slice can't have length 0
-      if (StringOrBufferLength(ltBuffer) > 0) {
-        LD_STRING_OR_BUFFER_TO_SLICE(_lt, ltBuffer, lt)
-        if (reverse) {
-          //if (!start || _lt.ToString() <= start->ToString()) {
+      if (ltBuffer->IsNull()) {
+        if (!reverse) {
+          skipEnd = true;
+        } else {
+          skipStart = true;
+        }
+      } else if (node::Buffer::HasInstance(ltBuffer) || ltBuffer->IsString()) {
+        // ignore end if it has size 0 since a Slice can't have length 0
+        if (StringOrBufferLength(ltBuffer) > 0) {
+          LD_STRING_OR_BUFFER_TO_SLICE(_lt, ltBuffer, lt)
+          if (!reverse) {
+            end = std::string(_lt.data(), _lt.size());
+            skipEnd = true;
+            delete[] _lt.data();
+          } else {
             if (start) {
               delete[] start->data();
               delete start;
             }
             start = new leveldb::Slice(_lt.data(), _lt.size());
             skipStart = true;
-          //} else
-          //  delete[] _lt.data();
-        }
-        else {
-          //if (end.empty() || _lt.ToString() <= end) {
-            end = std::string(_lt.data(), _lt.size());
-            skipEnd = true;
-          //}
-          delete[] _lt.data();
+          }
         }
       }
     }
@@ -608,32 +610,36 @@ NAN_METHOD(Iterator::New) {
       }
     }
 
-    if (optionsObj->Has(NanNew("gt"))
-        && (node::Buffer::HasInstance(optionsObj->Get(NanNew("gt")))
-          || optionsObj->Get(NanNew("gt"))->IsString())) {
-
+    if (optionsObj->Has(NanNew("gt"))) {
       v8::Local<v8::Value> gtBuffer = optionsObj->Get(NanNew("gt"));
-
-      // ignore end if it has size 0 since a Slice can't have length 0
-      if (StringOrBufferLength(gtBuffer) > 0) {
-        LD_STRING_OR_BUFFER_TO_SLICE(_gt, gtBuffer, gt)
-        //gt = new std::string(_gt.data(), _gt.size());
+      if (gtBuffer->IsNull()) {
         if (!reverse) {
-          //if (!start || _gt.ToString() >= start->ToString()) {
-            if (start) {
-              delete[] start->data();
-              delete start;
-            }
-            start = new leveldb::Slice(_gt.data(), _gt.size());
             skipStart = true;
-          //} else
-          //  delete[] _gt.data();
         } else {
-          //if (end.empty() || _gt.ToString() >= end) {
-            end = std::string(_gt.data(), _gt.size());
             skipEnd = true;
-          //}
-          delete[] _gt.data();
+        }
+      } else if (node::Buffer::HasInstance(gtBuffer) || gtBuffer->IsString()) {
+        // ignore end if it has size 0 since a Slice can't have length 0
+        if (StringOrBufferLength(gtBuffer) > 0) {
+          LD_STRING_OR_BUFFER_TO_SLICE(_gt, gtBuffer, gt)
+          //gt = new std::string(_gt.data(), _gt.size());
+          if (!reverse) {
+            //if (!start || _gt.ToString() >= start->ToString()) {
+              if (start) {
+                delete[] start->data();
+                delete start;
+              }
+              start = new leveldb::Slice(_gt.data(), _gt.size());
+              skipStart = true;
+            //} else
+            //  delete[] _gt.data();
+          } else {
+            //if (end.empty() || _gt.ToString() >= end) {
+              end = std::string(_gt.data(), _gt.size());
+              skipEnd = true;
+            //}
+            delete[] _gt.data();
+          }
         }
       }
     }
