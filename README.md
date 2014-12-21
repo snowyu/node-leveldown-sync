@@ -34,14 +34,15 @@ Tested & supported platforms
 
 + Add the AbstractError and error code supports.
 + Add the isExists supports to test the key whether exists.
-+ Add the synchronous methods supports for open, put, get, del, batch, approximateSize.
++ Add the synchronous methods supports for open, close, put, get, del, batch, approximateSize.
   * the methods will be executed as sync method if no callback argument passed.
   * if any error occurs it will throw exception.
   * Or call openSync, putSync, getSync, delSync, batchSync, approximateSizeSync directly.
 + Add iterator.nextSync, iterator.endSync synchronous methods
 * Optimize the iterator performance and fix memory leaks.
 * Update the LevelDB to 1.18 and Snappy to 1.1.2
-
+* Add mGetSync to multi get keys for better performance.
+  * see [abstract-nosql](https://github.com/snowyu/node-abstract-nosql) for more details
 
 ## Performance
 
