@@ -30,7 +30,6 @@ Iterator::Iterator (
   , bool valueAsBuffer
   , v8::Local<v8::Object> &startHandle
   , size_t highWaterMark
-  , std::vector<std::string> keysArray
 ) : database(database)
   , id(id)
   , start(start)
@@ -40,7 +39,6 @@ Iterator::Iterator (
   , noReverse(noReverse)
   , limit(limit)
   , highWaterMark(highWaterMark)
-  , keysArray(keysArray)
   , keys(keys)
   , values(values)
   , keyAsBuffer(keyAsBuffer)
@@ -76,9 +74,6 @@ Iterator::~Iterator () {
 };
 
 inline void Iterator::InitDbIterator() {
-  if (keysArray.size() > 0) {
-    return;
-  }
   // get a snapshot of the current state
   options.snapshot = database->NewSnapshot();
   dbIterator = database->NewIterator(&options);
@@ -120,16 +115,18 @@ inline void Iterator::InitDbIterator() {
 }
 
 bool Iterator::GetIterator () {
+  /*
   if (dbIterator == NULL) {
     InitDbIterator();
     return true;
   }
+  */
   return false;
 }
 
 //read and move to next
 inline bool Iterator::Read (std::string& key, std::string& value) {
-  bool result = dbIterator->Valid() && (limit < 0 || ++count <= limit);
+  bool result = dbIterator && dbIterator->Valid() && (limit < 0 || ++count <= limit);
   // now check if this is the end or not, if not then return the key & value
   if (result) {
     //key = dbIterator->key().ToString();
@@ -210,16 +207,7 @@ bool Iterator::IteratorNext2 (std::vector<std::pair<std::string, std::string> >&
 bool Iterator::IteratorNext (std::vector<std::pair<std::string, std::string> >& results) {
   size_t size = 0;
   bool ok;
-  if (keysArray.size() > 0) {
-    for (size_t i = 0; i < keysArray.size(); i++) {
-      std::string value;
-      leveldb::Status status = database->db->Get(options, keysArray[i], &value);
-      if (status.ok()) {
-        results.push_back(std::make_pair(keysArray[i], value));
-      }
-    }
-    ok = false;
-  } else do {
+  do {
     std::string key, value;
     ok = Read(key, value);
 
@@ -275,12 +263,7 @@ bool Iterator::IteratorNext (std::vector<std::pair<std::string, std::string> >& 
 }
 
 leveldb::Status Iterator::IteratorStatus () {
-  leveldb::Status result;
-  if (keysArray.size() <= 0)
-    result = dbIterator->status();
-  else
-    result = leveldb::Status::OK();
-  return result;
+  return dbIterator->status();
 }
 
 void Iterator::IteratorEnd () {
@@ -289,10 +272,12 @@ void Iterator::IteratorEnd () {
     delete dbIterator;
     dbIterator = NULL;
     database->ReleaseSnapshot(options.snapshot);
+    database->ReleaseIterator(id);
   }
 }
 
 void Iterator::Release () {
+  printf("IteratorRelease.\n");
   database->ReleaseIterator(id);
 }
 
@@ -354,7 +339,7 @@ NAN_METHOD(Iterator::NextSync) {
     else
       returnValue = NanNull();
 
-    
+
     //returnArray->Set(NanNew<v8::Integer>(static_cast<int>(idx * 2)), returnKey);
     //returnArray->Set(NanNew<v8::Integer>(static_cast<int>(idx * 2+1)), returnValue);
     //returnArray->Set(returnKey, returnValue);
@@ -369,7 +354,7 @@ NAN_METHOD(Iterator::NextSync) {
   v8::Local<v8::Array> result = NanNew<v8::Array>(2);
   result->Set(NanNew<v8::Integer>(0), returnArray);
   // when ok === false all data has been read, so it's then finished
-  result->Set(NanNew<v8::Integer>(1), NanNew<v8::Integer>(s));
+  result->Set(NanNew<v8::Integer>(1), NanNew<v8::Integer>(static_cast<int>(s)));
 
   NanReturnValue(result);
 }
@@ -384,7 +369,7 @@ NAN_METHOD(Iterator::EndSync) {
   if (!iterator->ended) {
     iterator->ended = true;
     iterator->IteratorEnd();
-    iterator->Release();
+    //iterator->Release();
     NanReturnValue(NanTrue());
   }
   NanReturnUndefined();
@@ -490,13 +475,10 @@ NAN_METHOD(Iterator::New) {
 
   v8::Local<v8::Object> optionsObj;
 
-  v8::Local<v8::Value> v;
   v8::Local<v8::Object> ltHandle;
   v8::Local<v8::Object> lteHandle;
   v8::Local<v8::Object> gtHandle;
   v8::Local<v8::Object> gteHandle;
-  
-  std::vector<std::string> keysArray;
 
   //default to forward.
   bool reverse = false;
@@ -506,17 +488,6 @@ NAN_METHOD(Iterator::New) {
 
     reverse = NanBooleanOptionValue(optionsObj, NanNew("reverse"));
 
-    if (optionsObj->Has(NanNew("range"))) {
-      v = optionsObj->Get(NanNew("range"));
-      if (!v.IsEmpty() && v->IsArray()) {
-        v8::Local<v8::Array> range = v8::Local<v8::Array>::Cast(v);
-        for (unsigned int i = 0; i < range->Length(); i++) {
-          v = range->Get(i);
-          v8::String::Utf8Value s(v->ToString());
-          keysArray.push_back(*s);
-        }
-      }
-    }
     if (optionsObj->Has(NanNew("start"))
         && (node::Buffer::HasInstance(optionsObj->Get(NanNew("start")))
           || optionsObj->Get(NanNew("start"))->IsString())) {
@@ -708,7 +679,6 @@ NAN_METHOD(Iterator::New) {
     , valueAsBuffer
     , startHandle
     , highWaterMark
-    , keysArray
   );
   iterator->Wrap(args.This());
 

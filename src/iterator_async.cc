@@ -98,7 +98,7 @@ void EndWorker::Execute () {
 }
 
 void EndWorker::HandleOKCallback () {
-  iterator->Release();
+  //iterator->Release();
   callback->Call(0, NULL);
 }
 

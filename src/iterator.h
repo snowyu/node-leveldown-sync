@@ -44,7 +44,6 @@ public:
     , bool valueAsBuffer
     , v8::Local<v8::Object> &startHandle
     , size_t highWaterMark
-    , std::vector<std::string> keysArray
   );
 
   ~Iterator ();
@@ -67,7 +66,6 @@ private:
   bool noReverse;
   int limit;
   size_t highWaterMark;
-  std::vector<std::string> keysArray;
 
 public:
   bool keys;
