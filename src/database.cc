@@ -148,6 +148,7 @@ void Database::Init () {
   NODE_SET_PROTOTYPE_METHOD(tpl, "open", Database::Open);
   NODE_SET_PROTOTYPE_METHOD(tpl, "openSync", Database::OpenSync);
   NODE_SET_PROTOTYPE_METHOD(tpl, "close", Database::Close);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "closeSync", Database::CloseSync);
   NODE_SET_PROTOTYPE_METHOD(tpl, "put", Database::Put);
   NODE_SET_PROTOTYPE_METHOD(tpl, "putSync", Database::PutSync);
   NODE_SET_PROTOTYPE_METHOD(tpl, "get", Database::Get);
@@ -161,6 +162,7 @@ void Database::Init () {
   NODE_SET_PROTOTYPE_METHOD(tpl, "getProperty", Database::GetProperty);
   NODE_SET_PROTOTYPE_METHOD(tpl, "iterator", Database::Iterator);
   NODE_SET_PROTOTYPE_METHOD(tpl, "isExistsSync", Database::IsExistsSync);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "mGetSync", Database::MultiGetSync);
 }
 
 NAN_METHOD(Database::New) {
@@ -359,6 +361,43 @@ NAN_METHOD(Database::Open) {
   NanReturnUndefined();
 }
 
+NAN_METHOD(Database::CloseSync) {
+  NanScope();
+
+  leveldown::Database* database = node::ObjectWrap::Unwrap<leveldown::Database>(args.This());
+
+  if (!database->iterators.empty()) {
+    printf("close iterators\n");
+    for (
+        std::map< uint32_t, leveldown::Iterator * >::iterator it
+            = database->iterators.begin()
+      ; it != database->iterators.end()
+      ; ++it) {
+
+        // for each iterator still open, first check if it's already in
+        // the process of ending (ended==true means an async End() is
+        // in progress), if not, then we call End() with an empty callback
+        // function and wait for it to hit ReleaseIterator() where our
+        // CloseWorker will be invoked
+
+        /*
+        v8::Local<v8::Object> localHandle = NanNew(it->second);
+        leveldown::Iterator* iterator =
+            node::ObjectWrap::Unwrap<leveldown::Iterator>(localHandle->
+                Get(NanNew("iterator")).As<v8::Object>());
+                */
+        leveldown::Iterator *iterator = it->second;
+
+        if (!iterator->ended) {
+          iterator->IteratorEnd();
+        }
+    }
+  }
+  database->CloseDatabase();
+
+  NanReturnValue(NanTrue());
+}
+
 NAN_METHOD(Database::Close) {
   NanScope();
 
@@ -373,6 +412,7 @@ NAN_METHOD(Database::Close) {
   worker->SaveToPersistent("database", _this);
 
   if (!database->iterators.empty()) {
+    printf("close iterators\n");
     // yikes, we still have iterators open! naughty naughty.
     // we have to queue up a CloseWorker and manually close each of them.
     // the CloseWorker will be invoked once they are all cleaned up
@@ -528,6 +568,47 @@ NAN_METHOD(Database::IsExistsSync) {
   v8::Local<v8::Value> returnValue = NanNew<v8::Boolean>(result);
   //printf("\ndb.get(%s)=%s\n", *key, *NanUtf8String(returnValue));
   NanReturnValue(returnValue);
+}
+
+//mgetSync(keys, fillCache=true)
+NAN_METHOD(Database::MultiGetSync) {
+  NanScope();
+
+  leveldown::Database* database = node::ObjectWrap::Unwrap<leveldown::Database>(args.This());
+
+  if (args.Length() == 0) {
+      NanThrowError("mGetSync requires the keys argument.", kInvalidArgument);
+      NanReturnUndefined();
+  }
+  v8::Local<v8::Value> v = args[0];
+  if (v.IsEmpty() || !v->IsArray()) {
+    NanThrowError("mGetSync: the keys argument should be an array.", kInvalidArgument);
+    NanReturnUndefined();
+  }
+
+  v8::Local<v8::Array> keys = v8::Local<v8::Array>::Cast(v);
+  bool fillCache = true;
+  if (args.Length() > 1 && args[1]->IsBoolean()) fillCache = args[1]->BooleanValue();
+
+  leveldb::ReadOptions options = leveldb::ReadOptions();
+  options.fill_cache = fillCache;
+
+  size_t arraySize = keys->Length();
+  v8::Local<v8::Array> returnArray = NanNew<v8::Array>();
+  int j = 0;
+  for (unsigned int i = 0; i < arraySize; i++) {
+    v = keys->Get(i);
+    v8::String::Utf8Value key(v->ToString());
+    std::string value;
+    leveldb::Status status = database->db->Get(options, *key, &value);
+    if (status.ok()) {
+      returnArray->Set(NanNew<v8::Integer>(j), NanNew<v8::String>(*key));
+      returnArray->Set(NanNew<v8::Integer>(++j), NanNew<v8::String>((char*)value.data(), value.size()));
+      ++j;
+    }
+  }
+
+  NanReturnValue(returnArray);
 }
 
 //getSync(aKey, fillCache=true)
