@@ -30,7 +30,7 @@
   ],
   "main": "leveldown.js",
   "dependencies": {
-    "abstract-nosql": "~1.6.0",
+    "abstract-nosql": "~1.7.0",
     "bindings": "~1.2.1",
     "fast-future": "~1.0.0",
     "nan": "~1.4.1"
