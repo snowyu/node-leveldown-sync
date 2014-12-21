@@ -23,12 +23,8 @@ LevelDOWN.prototype._openSync = function (options) {
   return this.binding.openSync(options)
 }
 
-LevelDOWN.prototype._open = function (options, callback) {
-  return this.binding.open(options, callback)
-}
-
-LevelDOWN.prototype._close = function (callback) {
-  this.binding.close(callback)
+LevelDOWN.prototype._closeSync = function () {
+  return this.binding.closeSync()
 }
 
 LevelDOWN.prototype._isExistsSync = function (key, options) {
@@ -37,6 +33,20 @@ LevelDOWN.prototype._isExistsSync = function (key, options) {
     if (options.fillCache === false) fillCache = false;
   }
   var result = this.binding.isExistsSync(key, fillCache);
+  return result;
+}
+
+LevelDOWN.prototype._mGetSync = function (keys, options) {
+  var fillCache = true;
+  var asBuffer = false;
+  if (typeof options === 'object') {
+    if (options.fillCache === false) fillCache = false;
+    if (options.asBuffer === true) asBuffer = true;
+  }
+  var result = this.binding.mGetSync(keys, fillCache);
+  if (asBuffer) for (var i=1; i < result.length; i+=2) {
+    result[i] = new Buffer(result[i]);
+  }
   return result;
 }
 
@@ -75,6 +85,15 @@ LevelDOWN.prototype._approximateSizeSync = function (start, end) {
 }
 
 
+LevelDOWN.prototype._open = function (options, callback) {
+  return this.binding.open(options, callback)
+}
+
+LevelDOWN.prototype._close = function (callback) {
+  console.log("close:", this.binding)
+  this.binding.close(callback)
+}
+
 LevelDOWN.prototype._put = function (key, value, options, callback) {
   return this.binding.put(key, value, options, callback)
 }
@@ -86,7 +105,6 @@ LevelDOWN.prototype._get = function (key, options, callback) {
 LevelDOWN.prototype._del = function (key, options, callback) {
   return this.binding.del(key, options, callback)
 }
-
 
 LevelDOWN.prototype._chainedBatch = function () {
   return new ChainedBatch(this)

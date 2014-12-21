@@ -3,8 +3,7 @@ const util             = require('util')
 
 
 function Iterator (db, options) {
-  AbstractIterator.call(this, options)
-
+  AbstractIterator.call(this, db, options)
   this.binding    = db.binding.iterator(options)
   this.cache      = null
   this.finished   = false
@@ -72,11 +71,9 @@ Iterator.prototype._next = function (callback) {
   return this
 }
 
-
 Iterator.prototype._end = function (callback) {
   delete this.cache
   this.binding.end(callback)
 }
-
 
 module.exports = Iterator
