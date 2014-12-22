@@ -1,7 +1,7 @@
 {
   "name": "leveldown-sync",
   "description": "A Node.js LevelDB binding with sync supports, primary backend for Levelup-sync",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "contributors": [
     "Riceball LEE <snowyu.lee@gmail.com> (https://github.com/snowyu)",
     "Rod Vagg <r@va.gg> (https://github.com/rvagg)",
@@ -30,7 +30,7 @@
   ],
   "main": "leveldown.js",
   "dependencies": {
-    "abstract-nosql": "~1.7.0",
+    "abstract-nosql": "~1.7.1",
     "bindings": "~1.2.1",
     "fast-future": "~1.0.0",
     "nan": "~1.4.1"
