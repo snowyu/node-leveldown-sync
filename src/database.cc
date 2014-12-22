@@ -367,7 +367,6 @@ NAN_METHOD(Database::CloseSync) {
   leveldown::Database* database = node::ObjectWrap::Unwrap<leveldown::Database>(args.This());
 
   if (!database->iterators.empty()) {
-    printf("close iterators\n");
     for (
         std::map< uint32_t, leveldown::Iterator * >::iterator it
             = database->iterators.begin()
@@ -412,11 +411,10 @@ NAN_METHOD(Database::Close) {
   worker->SaveToPersistent("database", _this);
 
   if (!database->iterators.empty()) {
-    printf("close iterators\n");
     // yikes, we still have iterators open! naughty naughty.
     // we have to queue up a CloseWorker and manually close each of them.
     // the CloseWorker will be invoked once they are all cleaned up
-    database->pendingCloseWorker = worker;
+    //database->pendingCloseWorker = worker;
 
     for (
         std::map< uint32_t, leveldown::Iterator * >::iterator it
@@ -439,23 +437,11 @@ NAN_METHOD(Database::Close) {
         leveldown::Iterator *iterator = it->second;
 
         if (!iterator->ended) {
-          v8::Local<v8::Function> end =
-              v8::Local<v8::Function>::Cast(NanObjectWrapHandle(iterator)->Get(
-                  NanNew<v8::String>("end")));
-          v8::Local<v8::Value> argv[] = {
-              NanNew<v8::FunctionTemplate>()->GetFunction() // empty callback
-          };
-          NanMakeCallback(
-              NanObjectWrapHandle(iterator)
-            , end
-            , 1
-            , argv
-          );
+          iterator->IteratorEnd();
         }
     }
-  } else {
-    NanAsyncQueueWorker(worker);
   }
+  NanAsyncQueueWorker(worker);
 
   NanReturnUndefined();
 }
