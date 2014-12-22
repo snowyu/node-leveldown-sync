@@ -39,11 +39,15 @@ LevelDOWN.prototype._isExistsSync = function (key, options) {
 LevelDOWN.prototype._mGetSync = function (keys, options) {
   var fillCache = true;
   var asBuffer = false;
+  var needKeyName = true;
+  var raiseError = true;
   if (typeof options === 'object') {
     if (options.fillCache === false) fillCache = false;
     if (options.asBuffer === true) asBuffer = true;
+    if (options.keys === false) needKeyName = false;
+    if (options.raiseError === false) raiseError = false;
   }
-  var result = this.binding.mGetSync(keys, fillCache);
+  var result = this.binding.mGetSync(keys, fillCache, needKeyName, raiseError);
   if (asBuffer) for (var i=1; i < result.length; i+=2) {
     result[i] = new Buffer(result[i]);
   }
@@ -90,7 +94,6 @@ LevelDOWN.prototype._open = function (options, callback) {
 }
 
 LevelDOWN.prototype._close = function (callback) {
-  console.log("close:", this.binding)
   this.binding.close(callback)
 }
 

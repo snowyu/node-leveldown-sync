@@ -570,7 +570,7 @@ NAN_METHOD(Database::IsExistsSync) {
   NanReturnValue(returnValue);
 }
 
-//mgetSync(keys, fillCache=true)
+//mgetSync(keys, fillCache=true, needKeyName=true, raiseError=true)
 NAN_METHOD(Database::MultiGetSync) {
   NanScope();
 
@@ -581,14 +581,21 @@ NAN_METHOD(Database::MultiGetSync) {
       NanReturnUndefined();
   }
   v8::Local<v8::Value> v = args[0];
-  if (v.IsEmpty() || !v->IsArray()) {
+  if (v.IsEmpty()) {
+    NanReturnUndefined();
+  }
+  if (!v->IsArray()) {
     NanThrowError("mGetSync: the keys argument should be an array.", kInvalidArgument);
     NanReturnUndefined();
   }
 
   v8::Local<v8::Array> keys = v8::Local<v8::Array>::Cast(v);
-  bool fillCache = true;
+  bool fillCache    = true;
+  bool needKeyName  = true;
+  bool raiseError   = true;
   if (args.Length() > 1 && args[1]->IsBoolean()) fillCache = args[1]->BooleanValue();
+  if (args.Length() > 2 && args[2]->IsBoolean()) needKeyName = args[2]->BooleanValue();
+  if (args.Length() > 3 && args[3]->IsBoolean()) raiseError = args[3]->BooleanValue();
 
   leveldb::ReadOptions options = leveldb::ReadOptions();
   options.fill_cache = fillCache;
@@ -602,8 +609,22 @@ NAN_METHOD(Database::MultiGetSync) {
     std::string value;
     leveldb::Status status = database->db->Get(options, *key, &value);
     if (status.ok()) {
-      returnArray->Set(NanNew<v8::Integer>(j), NanNew<v8::String>(*key));
-      returnArray->Set(NanNew<v8::Integer>(++j), NanNew<v8::String>((char*)value.data(), value.size()));
+      if (needKeyName) {
+        returnArray->Set(NanNew<v8::Integer>(j), v);
+        ++j;
+      }
+      returnArray->Set(NanNew<v8::Integer>(j), NanNew<v8::String>((char*)value.data(), value.size()));
+      ++j;
+    } else if (raiseError) {
+      Status* st = reinterpret_cast<Status*>(&status);
+      NanThrowError(status.ToString().c_str(), st->code());
+      NanReturnUndefined();
+    } else {
+      if (needKeyName) {
+        returnArray->Set(NanNew<v8::Integer>(j), v);
+        ++j;
+      }
+      returnArray->Set(NanNew<v8::Integer>(j), NanUndefined());
       ++j;
     }
   }

@@ -3,11 +3,11 @@ const util             = require('util')
 
 
 function Iterator (db, options) {
-  AbstractIterator.call(this, db, options)
-  this.binding    = db.binding.iterator(options)
-  this.cache      = null
-  this.finished   = false
-  this.fastFuture = require('fast-future')()
+  if (AbstractIterator.call(this, db, options))
+    this.binding    = db.binding.iterator(options)
+    this.cache      = null
+    this.finished   = false
+    this.fastFuture = require('fast-future')()
 }
 
 util.inherits(Iterator, AbstractIterator)
