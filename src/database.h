@@ -122,6 +122,7 @@ private:
   static NAN_METHOD(IsExistsSync);
   static NAN_METHOD(MultiGetSync);
   static NAN_METHOD(CloseSync);
+  static NAN_METHOD(GetBufferSync);
 };
 
 } // namespace leveldown

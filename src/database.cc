@@ -163,6 +163,7 @@ void Database::Init () {
   NODE_SET_PROTOTYPE_METHOD(tpl, "iterator", Database::Iterator);
   NODE_SET_PROTOTYPE_METHOD(tpl, "isExistsSync", Database::IsExistsSync);
   NODE_SET_PROTOTYPE_METHOD(tpl, "mGetSync", Database::MultiGetSync);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "getBufferSync", Database::GetBufferSync);
 }
 
 NAN_METHOD(Database::New) {
@@ -616,6 +617,57 @@ NAN_METHOD(Database::MultiGetSync) {
   }
 
   NanReturnValue(returnArray);
+}
+
+//getBufferSync(aKey, destBuffer, fillCache=true, offset=0)
+NAN_METHOD(Database::GetBufferSync) {
+  NanScope();
+
+  leveldown::Database* database = node::ObjectWrap::Unwrap<leveldown::Database>(args.This());
+
+  if (args.Length() == 0) {
+      NanThrowError("GetSync requires the key argument.", kInvalidArgument);
+      NanReturnUndefined();
+  }
+
+  v8::String::Utf8Value key(args[0]->ToString());
+  bool hasBuffer = !args[1]->IsNull();
+  std::string value;
+  bool fillCache = true;
+  size_t offset = 0;
+  //if (args.Length() > 1) destBuffer = args[1]->ToObject();
+  if (args.Length() > 2 && args[2]->IsBoolean()) fillCache = args[2]->BooleanValue();
+  if (args.Length() > 3) {
+    int32_t tmp_i = args[3]->Int32Value();
+    if (tmp_i > 0) offset = static_cast<size_t>(tmp_i);
+  }
+
+  leveldb::ReadOptions options = leveldb::ReadOptions();
+  options.fill_cache = fillCache;
+  leveldb::Status status = database->db->Get(options, *key, &value);
+
+  if (!status.ok()) {
+    Status* st = reinterpret_cast<Status*>(&status);
+    NanThrowError(status.ToString().c_str(), st->code());
+    NanReturnUndefined();
+  }
+  size_t value_len = value.size();
+  if (hasBuffer) {
+    v8::Local<v8::Object> destBuffer = args[1]->ToObject();
+    if (node::Buffer::HasInstance(destBuffer)) {
+      size_t dest_len = destBuffer->GetIndexedPropertiesExternalArrayDataLength();
+      if (offset > dest_len) {
+        NanThrowRangeError("offset out of range");
+        NanReturnUndefined();
+      }
+      if (value_len > (dest_len-offset)) value_len = dest_len-offset;
+      char* dest_data = static_cast<char*>(
+        destBuffer->GetIndexedPropertiesExternalArrayData());
+      memcpy(dest_data+offset, value.data(), value_len);
+    }
+  }
+
+  NanReturnValue(NanNew<v8::Number>(value_len));
 }
 
 //getSync(aKey, fillCache=true)

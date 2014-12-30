@@ -1,5 +1,5 @@
 const util              = require('util')
-    , AbstractLevelDOWN = require('abstract-nosql').AbstractLevelDOWN
+    , AbstractNoSQL     = require('abstract-nosql').AbstractNoSQL
     , Errors            = require('abstract-nosql/abstract-error')
 
     , binding           = require('bindings')('leveldown.node').leveldown
@@ -13,11 +13,11 @@ function LevelDOWN (location) {
   if (!(this instanceof LevelDOWN))
     return new LevelDOWN(location)
 
-  AbstractLevelDOWN.call(this, location)
+  AbstractNoSQL.call(this, location)
   this.binding = binding(location)
 }
 
-util.inherits(LevelDOWN, AbstractLevelDOWN)
+util.inherits(LevelDOWN, AbstractNoSQL)
 
 LevelDOWN.prototype._openSync = function (options) {
   return this.binding.openSync(options)
@@ -51,6 +51,17 @@ LevelDOWN.prototype._mGetSync = function (keys, options) {
   if (asBuffer) for (var i=1; i < result.length; i+=2) {
     result[i] = new Buffer(result[i]);
   }
+  return result;
+}
+
+LevelDOWN.prototype._getBufferSync = function (key, destBuffer, options) {
+  var fillCache = true;
+  var offset = 0;
+  if (typeof options === 'object') {
+    if (options.fillCache === false) fillCache = false;
+    if (options.offset > 0) offset = options.offset;
+  }
+  var result = this.binding.getBufferSync(key, destBuffer, fillCache, offset);
   return result;
 }
 
