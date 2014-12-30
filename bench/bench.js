@@ -57,35 +57,35 @@ function putSyncDirect () {
   log(true, count, 'put', duration, 'directly');
 }
 
-function getSync () {
+function getAsBufferSync () {
   if (!leveldown.getSync) {
     return;
   }
   start = Date.now();
 
   for (var i = 0; i < count; i++) {
-    assert(leveldown.get(i) == val);
+    assert(leveldown.get(i, {asBuffer: true}) == val);
   }
 
   duration = Date.now()-start;
   log(true, count, 'get', duration,"asBuffer");
 }
 
-function getSyncDirect () {
+function getAsBufferSyncDirect () {
   if (!leveldown.getSync) {
     return;
   }
   start = Date.now();
 
   for (var i = 0; i < count; i++) {
-    assert(leveldown.getSync(i) == val);
+    assert(leveldown.getSync(i, {asBuffer: true}) == val);
   }
 
   duration = Date.now()-start;
   log(true, count, 'get', duration, 'directly');
 }
 
-function getStrSync () {
+function getSync () {
   if (!leveldown.getSync) {
     return;
   }
@@ -97,6 +97,38 @@ function getStrSync () {
 
   duration = Date.now()-start;
   log(true, count, 'get', duration);
+}
+
+function getBufferSync () {
+  if (!leveldown._getBufferSync) {
+    return;
+  }
+  var destBuffer = new Buffer(val.length);
+
+  start = Date.now();
+
+  for (var i = 0; i < count; i++) {
+    assert(leveldown.getBufferSync(i, destBuffer) === val.length);
+  }
+
+  duration = Date.now()-start;
+  log(true, count, 'get', duration, 'toBuffer');
+}
+
+function mGetSync () {
+  if (!leveldown._mGetSync) {
+    return;
+  }
+  start = Date.now();
+
+  var keys = []
+  for (var i = 0; i < count; i++) {
+    keys.push(i);
+  }
+  assert(leveldown.mGetSync(keys, {keys:false}).length === count);
+
+  duration = Date.now()-start;
+  log(true, count, 'get', duration, 'mget');
 }
 
 function putAsync(cb) {
@@ -115,12 +147,12 @@ function putAsync(cb) {
   }
 }
 
-function getAsync (cb) {
+function getAsBufferAsync (cb) {
   start = Date.now();
 
   var received = 0;
   for (var i = 0; i < count; i++) {
-    leveldown.get(i, function (err, value) {
+    leveldown.get(i, {asBuffer: true}, function (err, value) {
       if (err) throw err;
       assert(value == val);
       if (++received == count) {
@@ -132,7 +164,7 @@ function getAsync (cb) {
   }
 }
 
-function getStrAsync (cb) {
+function getAsync (cb) {
   start = Date.now();
 
   var received = 0;
@@ -337,11 +369,13 @@ putAsync(function () {
   batchAsync(function () {
     batchSync()
     batchSyncDirect()
-    getAsync(function () {
-      getStrAsync(function () {
+    getAsBufferAsync(function () {
+      getAsync(function () {
+        getAsBufferSync()
+        getAsBufferSyncDirect()
         getSync()
-        getStrSync()
-        getSyncDirect()
+        getBufferSync()
+        mGetSync()
         iteratorAsync(function(){
           iteratorStrAsync(function(){
             iteratorStrAsyncDirect(function(){
