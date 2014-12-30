@@ -30,11 +30,12 @@
   ],
   "main": "leveldown.js",
   "dependencies": {
-    "abstract-nosql": "~1.8.0",
+    "abstract-iterator": ">=0.9.1",
+    "abstract-nosql": "1.x",
     "bindings": "~1.2.1",
     "fast-future": "~1.0.0",
     "nan": "~1.4.1",
-    "nosql-stream": "~1.1.0"
+    "nosql-stream": "1.x"
   },
   "devDependencies": {
     "du": "~0.1.0",

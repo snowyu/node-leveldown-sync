@@ -1,5 +1,5 @@
 const util             = require('util')
-    , AbstractIterator = require('abstract-nosql').AbstractIterator
+    , AbstractIterator = require('abstract-iterator')
 
 
 function Iterator (db, options) {
