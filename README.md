@@ -104,6 +104,8 @@ benchmarking with 12,000 records, 24 chars each
   * <a href="#leveldown_close"><code><b>leveldown#close()</b></code></a>
   * <a href="#leveldown_put"><code><b>leveldown#put()</b></code></a>
   * <a href="#leveldown_get"><code><b>leveldown#get()</b></code></a>
+  * <a href="#leveldown_get"><code><b>leveldown#getBuffer()</b></code></a>
+  * <a href="#leveldown_get"><code><b>leveldown#mGet()</b></code></a>
   * <a href="#leveldown_del"><code><b>leveldown#del()</b></code></a>
   * <a href="#leveldown_batch"><code><b>leveldown#batch()</b></code></a>
   * <a href="#leveldown_approximateSize"><code><b>leveldown#approximateSize()</b></code></a>
@@ -363,6 +365,7 @@ See the [CONTRIBUTING.md](https://github.com/rvagg/node-leveldown/blob/master/CO
 LevelDOWN is only possible due to the excellent work of the following contributors:
 
 <table><tbody>
+<tr><th align="left">Riceball LEE</th><td><a href="https://github.com/snowyu">GitHub/snowyu</a></td><td></td></tr>
 <tr><th align="left">Rod Vagg</th><td><a href="https://github.com/rvagg">GitHub/rvagg</a></td><td><a href="http://twitter.com/rvagg">Twitter/@rvagg</a></td></tr>
 <tr><th align="left">John Chesley</th><td><a href="https://github.com/chesles/">GitHub/chesles</a></td><td><a href="http://twitter.com/chesles">Twitter/@chesles</a></td></tr>
 <tr><th align="left">Jake Verbaten</th><td><a href="https://github.com/raynos">GitHub/raynos</a></td><td><a href="http://twitter.com/raynos2">Twitter/@raynos2</a></td></tr>
