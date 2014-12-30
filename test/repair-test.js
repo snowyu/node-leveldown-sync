@@ -11,7 +11,7 @@ const test         = require('tap').test
 test('test argument-less repair() throws', function (t) {
   t.throws(
       leveldown.repair
-    , { name: 'Error', message: 'repair() requires `location` and `callback` arguments' }
+    , { name: 'InvalidArgumentError', message: 'repair() requires `location` and `callback` arguments' }
     , 'no-arg repair() throws'
   )
   t.end()
@@ -20,7 +20,7 @@ test('test argument-less repair() throws', function (t) {
 test('test callback-less, 1-arg, repair() throws', function (t) {
   t.throws(
       leveldown.repair.bind(null, 'foo')
-    , { name: 'Error', message: 'repair() requires `location` and `callback` arguments' }
+    , { name: 'InvalidArgumentError', message: 'repair() requires `location` and `callback` arguments' }
     , 'callback-less, 1-arg repair() throws'
   )
   t.end()

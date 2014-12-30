@@ -10,7 +10,7 @@ const test         = require('tap').test
 test('test argument-less destroy() throws', function (t) {
   t.throws(
       leveldown.destroy
-    , { name: 'Error', message: 'destroy() requires `location` and `callback` arguments' }
+    , { name: 'InvalidArgumentError', message: 'destroy() requires `location` and `callback` arguments' }
     , 'no-arg destroy() throws'
   )
   t.end()
@@ -19,7 +19,7 @@ test('test argument-less destroy() throws', function (t) {
 test('test callback-less, 1-arg, destroy() throws', function (t) {
   t.throws(
       leveldown.destroy.bind(null, 'foo')
-    , { name: 'Error', message: 'destroy() requires `location` and `callback` arguments' }
+    , { name: 'InvalidArgumentError', message: 'destroy() requires `location` and `callback` arguments' }
     , 'callback-less, 1-arg destroy() throws'
   )
   t.end()

@@ -14,7 +14,7 @@ test('setUp db', function (t) {
 test('test argument-less getProperty() throws', function (t) {
   t.throws(
       db.getProperty.bind(db)
-    , { name: 'Error', message: 'getProperty() requires a valid `property` argument' }
+    , { name: 'InvalidArgumentError', message: 'getProperty() requires a valid `property` argument' }
     , 'no-arg getProperty() throws'
   )
   t.end()
@@ -23,7 +23,7 @@ test('test argument-less getProperty() throws', function (t) {
 test('test non-string getProperty() throws', function (t) {
   t.throws(
       db.getProperty.bind(db, {})
-    , { name: 'Error', message: 'getProperty() requires a valid `property` argument' }
+    , { name: 'InvalidArgumentError', message: 'getProperty() requires a valid `property` argument' }
     , 'no-arg getProperty() throws'
   )
   t.end()
