@@ -4,7 +4,7 @@ const util             = require('util')
 
 function Iterator (db, options) {
   if (AbstractIterator.call(this, db, options))
-    this.binding    = db.binding.iterator(options)
+    this.binding    = db.binding.iterator(this.options)
     this.cache      = null
     this.finished   = false
     this.fastFuture = require('fast-future')()
