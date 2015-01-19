@@ -32,6 +32,15 @@ Tested & supported platforms
 
 ## Chnages
 
+### v2.x.x
+
++ the modularization(feature plugin) with [abstract-nosql](https://github.com/snowyu/node-abstract-nosql)
+- (`broken changes`) remove the streamable feature from buildin. this is a plugin now.
+- (`broken change`) defaults to disable asBuffer option.
+  * pls use the `getBuffer` method to get as buffer.
+
+### v1.x.x
+
 + Add the AbstractError and error code supports.
 + Add the isExists supports to test the key whether exists.
 + Add the synchronous methods supports for open, close, put, get, del, batch, approximateSize.
@@ -43,6 +52,7 @@ Tested & supported platforms
 * Update the LevelDB to 1.18 and Snappy to 1.1.2
 * Add mGetSync to multi get keys for better performance.
   * see [abstract-nosql](https://github.com/snowyu/node-abstract-nosql) for more details
++ Add GetBufferSync to get as buffer.
 
 ## Performance
 
