@@ -1,14 +1,13 @@
-LevelDB
-=========
+LevelDB [![Build Status](https://img.shields.io/travis/snowyu/node-nosql-leveldb/master.svg)](http://travis-ci.org/snowyu/node-nosql-leveldb) 
+=================
+
+
+[![npm](https://img.shields.io/npm/v/nosql-leveldb.svg)](https://npmjs.org/package/nosql-leveldb) [![downloads](https://img.shields.io/npm/dm/nosql-leveldb.svg)](https://npmjs.org/package/nosql-leveldb) [![license](https://img.shields.io/npm/l/nosql-leveldb.svg)](https://npmjs.org/package/nosql-leveldb) 
 
 ![LevelDB Logo](https://camo.githubusercontent.com/35c59b1270df115851d8f50b57c7eb2d916f61d4/68747470733a2f2f302e67726176617461722e636f6d2f6176617461722f6134393862313232616563623736373834393061333862623539336363313264)
 
 A Low-level Node.js LevelDB binding
 -------------------------
-
-[![Build Status](https://secure.travis-ci.org/snowyu/node-nosql-leveldb.png)](http://travis-ci.org/snowyu/node-nosql-leveldb)
-
-[![NPM](https://nodei.co/npm/nosql-leveldb.png?stars&downloads&downloadRank)](https://nodei.co/npm/nosql-leveldb/) [![NPM](https://nodei.co/npm-dl/nosql-leveldb.png?months=6&height=3)](https://nodei.co/npm/nosql-leveldb/)
 
 Leveldown was extracted from [LevelUP](https://github.com/rvagg/node-levelup) and now serves as a stand-alone binding for LevelDB.
 
