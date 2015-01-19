@@ -1,22 +1,22 @@
-LevelDOWN
+LevelDB
 =========
 
-![LevelDB Logo](https://twimg0-a.akamaihd.net/profile_images/3360574989/92fc472928b444980408147e5e5db2fa_bigger.png)
+![LevelDB Logo](https://camo.githubusercontent.com/35c59b1270df115851d8f50b57c7eb2d916f61d4/68747470733a2f2f302e67726176617461722e636f6d2f6176617461722f6134393862313232616563623736373834393061333862623539336363313264)
 
 A Low-level Node.js LevelDB binding
 -------------------------
 
-[![Build Status](https://secure.travis-ci.org/snowyu/node-leveldown-sync.png)](http://travis-ci.org/snowyu/node-leveldown-sync)
+[![Build Status](https://secure.travis-ci.org/snowyu/node-nosql-leveldb.png)](http://travis-ci.org/snowyu/node-nosql-leveldb)
 
-[![NPM](https://nodei.co/npm/leveldown-sync.png?stars&downloads&downloadRank)](https://nodei.co/npm/leveldown-sync/) [![NPM](https://nodei.co/npm-dl/leveldown-sync.png?months=6&height=3)](https://nodei.co/npm/leveldown-sync/)
+[![NPM](https://nodei.co/npm/nosql-leveldb.png?stars&downloads&downloadRank)](https://nodei.co/npm/nosql-leveldb/) [![NPM](https://nodei.co/npm-dl/nosql-leveldb.png?months=6&height=3)](https://nodei.co/npm/nosql-leveldb/)
 
-LevelDOWN was extracted from [LevelUP](https://github.com/rvagg/node-levelup) and now serves as a stand-alone binding for LevelDB.
+Leveldown was extracted from [LevelUP](https://github.com/rvagg/node-levelup) and now serves as a stand-alone binding for LevelDB.
 
-Leveldown-sync adds the synchronous methods supports to LevelDOWN.
+nosql-leveldb was modified from [LevelDown](https://github.com/rvagg/node-leveldown). see changes below for differencement list.
 
-It is **strongly recommended** that you use LevelUP-sync in preference to LevelDOWN unless you have measurable performance reasons to do so. LevelUP is optimised for usability and safety. Although we are working to improve the safety of the LevelDOWN interface it is still easy to crash your Node process if you don't do things in just the right way.
+It is **strongly recommended** that you use LevelUP-sync in preference to LevelDB unless you have measurable performance reasons to do so. LevelUP is optimised for usability and safety. Although we are working to improve the safety of the LevelDB interface it is still easy to crash your Node process if you don't do things in just the right way.
 
-See the section on <a href="#safety">safety</a> below for details of known unsafe operations with LevelDOWN.
+See the section on <a href="#safety">safety</a> below for details of known unsafe operations with LevelDB.
 
 <a name="platforms"></a>
 Tested & supported platforms
@@ -49,7 +49,7 @@ Tested & supported platforms
   * Or call openSync, putSync, getSync, delSync, batchSync, approximateSizeSync directly.
 + Add iterator.nextSync, iterator.endSync synchronous methods
 * Optimize the iterator performance and fix memory leaks.
-* Update the LevelDB to 1.18 and Snappy to 1.1.2
+* Upgrade the LevelDB to 1.18 and Snappy to 1.1.2
 * Add mGetSync to multi get keys for better performance.
   * see [abstract-nosql](https://github.com/snowyu/node-abstract-nosql) for more details
 + Add GetBufferSync to get as buffer.
@@ -58,7 +58,7 @@ Tested & supported platforms
 
 run bench/bench.js to see a simple performance compare:
 
-the original leveldown bench result:
+the original Leveldown bench result:
 
 ```bash
 
@@ -77,7 +77,7 @@ the original leveldown bench result:
 
 ```
 
-The new leveldown-sync bench result:
+The new nosql-leveldb bench result:
 
 ```bash
 
@@ -109,33 +109,33 @@ benchmarking with 12,000 records, 24 chars each
 <a name="api"></a>
 ## API
 
-  * <a href="#ctor"><code><b>leveldown()</b></code></a>
-  * <a href="#leveldown_open"><code><b>leveldown#open()</b></code></a>
-  * <a href="#leveldown_close"><code><b>leveldown#close()</b></code></a>
-  * <a href="#leveldown_put"><code><b>leveldown#put()</b></code></a>
-  * <a href="#leveldown_get"><code><b>leveldown#get()</b></code></a>
-  * <a href="#leveldown_get"><code><b>leveldown#getBuffer()</b></code></a>
-  * <a href="#leveldown_get"><code><b>leveldown#mGet()</b></code></a>
-  * <a href="#leveldown_del"><code><b>leveldown#del()</b></code></a>
-  * <a href="#leveldown_batch"><code><b>leveldown#batch()</b></code></a>
-  * <a href="#leveldown_approximateSize"><code><b>leveldown#approximateSize()</b></code></a>
-  * <a href="#leveldown_getProperty"><code><b>leveldown#getProperty()</b></code></a>
-  * <a href="#leveldown_iterator"><code><b>leveldown#iterator()</b></code></a>
+  * <a href="#ctor"><code><b>LevelDB()</b></code></a>
+  * <a href="#LevelDB_open"><code><b>LevelDB#open()</b></code></a>
+  * <a href="#LevelDB_close"><code><b>LevelDB#close()</b></code></a>
+  * <a href="#LevelDB_put"><code><b>LevelDB#put()</b></code></a>
+  * <a href="#LevelDB_get"><code><b>LevelDB#get()</b></code></a>
+  * <a href="#LevelDB_get"><code><b>LevelDB#getBuffer()</b></code></a>
+  * <a href="#LevelDB_get"><code><b>LevelDB#mGet()</b></code></a>
+  * <a href="#LevelDB_del"><code><b>LevelDB#del()</b></code></a>
+  * <a href="#LevelDB_batch"><code><b>LevelDB#batch()</b></code></a>
+  * <a href="#LevelDB_approximateSize"><code><b>LevelDB#approximateSize()</b></code></a>
+  * <a href="#LevelDB_getProperty"><code><b>LevelDB#getProperty()</b></code></a>
+  * <a href="#LevelDB_iterator"><code><b>LevelDB#iterator()</b></code></a>
   * <a href="#iterator_next"><code><b>iterator#next()</b></code></a>
   * <a href="#iterator_end"><code><b>iterator#end()</b></code></a>
-  * <a href="#leveldown_destroy"><code><b>leveldown.destroy()</b></code></a>
-  * <a href="#leveldown_repair"><code><b>leveldown.repair()</b></code></a>
+  * <a href="#LevelDB_destroy"><code><b>LevelDB.destroy()</b></code></a>
+  * <a href="#LevelDB_repair"><code><b>LevelDB.repair()</b></code></a>
 
 
 --------------------------------------------------------
 <a name="ctor"></a>
-### leveldown(location)
-<code>leveldown()</code> returns a new **LevelDOWN** instance. `location` is a String pointing to the LevelDB location to be opened.
+### LevelDB(location)
+<code>LevelDB()</code> returns a new **LevelDB** instance. `location` is a String pointing to the LevelDB location to be opened.
 
 
 --------------------------------------------------------
-<a name="leveldown_open"></a>
-### leveldown#open([options, ]callback)
+<a name="LevelDB_open"></a>
+### LevelDB#open([options, ]callback)
 <code>open()</code> is an instance method on an existing database object.
 
 The `callback` function will be called with no arguments when the database has been successfully opened, or with a single `error` argument if the open operation failed for any reason.
@@ -168,14 +168,14 @@ The following options are for advanced performance tuning. Modify them only if y
 
 
 --------------------------------------------------------
-<a name="leveldown_close"></a>
-### leveldown#close(callback)
+<a name="LevelDB_close"></a>
+### LevelDB#close(callback)
 <code>close()</code> is an instance method on an existing database object. The underlying LevelDB database will be closed and the `callback` function will be called with no arguments if the operation is successful or with a single `error` argument if the operation failed for any reason.
 
 
 --------------------------------------------------------
-<a name="leveldown_put"></a>
-### leveldown#put(key, value[, options], callback)
+<a name="LevelDB_put"></a>
+### LevelDB#put(key, value[, options], callback)
 <code>put()</code> is an instance method on an existing database object, used to store new entries, or overwrite existing entries in the LevelDB store.
 
 The `key` and `value` objects may either be `String`s or Node.js `Buffer` objects. Other object types are converted to JavaScript `String`s with the `toString()` method. Keys may not be `null` or `undefined` and objects converted with `toString()` should not result in an empty-string. Values of `null`, `undefined`, `''`, `[]` and `new Buffer(0)` (and any object resulting in a `toString()` of one of these) will be stored as a zero-length character array and will therefore be retrieved as either `''` or `new Buffer(0)` depending on the type requested.
@@ -190,8 +190,8 @@ The `callback` function will be called with no arguments if the operation is suc
 
 
 --------------------------------------------------------
-<a name="leveldown_get"></a>
-### leveldown#get(key[, options], callback)
+<a name="LevelDB_get"></a>
+### LevelDB#get(key[, options], callback)
 <code>get()</code> is an instance method on an existing database object, used to fetch individual entries from the LevelDB store.
 
 The `key` object may either be a `String` or a Node.js `Buffer` object and cannot be `undefined` or `null`. Other object types are converted to JavaScript `String`s with the `toString()` method and the resulting `String` *may not* be a zero-length. A richer set of data-types are catered for in LevelUP.
@@ -210,36 +210,36 @@ The `callback` function will be called with a single `error` if the operation fa
 
 
 --------------------------------------------------------
-<a name="leveldown_del"></a>
-### leveldown#del(key[, options], callback)
+<a name="LevelDB_del"></a>
+### LevelDB#del(key[, options], callback)
 <code>del()</code> is an instance method on an existing database object, used to delete entries from the LevelDB store.
 
 The `key` object may either be a `String` or a Node.js `Buffer` object and cannot be `undefined` or `null`. Other object types are converted to JavaScript `String`s with the `toString()` method and the resulting `String` *may not* be a zero-length. A richer set of data-types are catered for in LevelUP.
 
 #### `options`
 
-The only property currently available on the `options` object is `'sync'` *(boolean, default: `false`)*. See <a href="#leveldown_put">leveldown#put()</a> for details about this option.
+The only property currently available on the `options` object is `'sync'` *(boolean, default: `false`)*. See <a href="#LevelDB_put">LevelDB#put()</a> for details about this option.
 
 The `callback` function will be called with no arguments if the operation is successful or with a single `error` argument if the operation failed for any reason.
 
 
 --------------------------------------------------------
-<a name="leveldown_batch"></a>
-### leveldown#batch(operations[, options], callback)
+<a name="LevelDB_batch"></a>
+### LevelDB#batch(operations[, options], callback)
 <code>batch()</code> is an instance method on an existing database object. Used for very fast bulk-write operations (both *put* and *delete*). The `operations` argument should be an `Array` containing a list of operations to be executed sequentially, although as a whole they are performed as an atomic operation inside LevelDB. Each operation is contained in an object having the following properties: `type`, `key`, `value`, where the *type* is either `'put'` or `'del'`. In the case of `'del'` the `'value'` property is ignored. Any entries with a `'key'` of `null` or `undefined` will cause an error to be returned on the `callback`. Any entries where the *type* is `'put'` that have a `'value'` of `undefined`, `null`, `[]`, `''` or `new Buffer(0)` will be stored as a zero-length character array and therefore be fetched during reads as either `''` or `new Buffer(0)` depending on how they are requested.
 
 See [LevelUP](https://github.com/rvagg/node-levelup#batch) for full documentation on how this works in practice.
 
 #### `options`
 
-The only property currently available on the `options` object is `'sync'` *(boolean, default: `false`)*. See <a href="#leveldown_put">leveldown#put()</a> for details about this option.
+The only property currently available on the `options` object is `'sync'` *(boolean, default: `false`)*. See <a href="#LevelDB_put">LevelDB#put()</a> for details about this option.
 
 The `callback` function will be called with no arguments if the operation is successful or with a single `error` argument if the operation failed for any reason.
 
 
 --------------------------------------------------------
-<a name="leveldown_approximateSize"></a>
-### leveldown#approximateSize(start, end, callback)
+<a name="LevelDB_approximateSize"></a>
+### LevelDB#approximateSize(start, end, callback)
 <code>approximateSize()</code> is an instance method on an existing database object. Used to get the approximate number of bytes of file system space used by the range `[start..end)`. The result may not include recently written data.
 
 The `start` and `end` parameters may be either `String` or Node.js `Buffer` objects representing keys in the LevelDB store.
@@ -248,8 +248,8 @@ The `callback` function will be called with no arguments if the operation is suc
 
 
 --------------------------------------------------------
-<a name="leveldown_getProperty"></a>
-### leveldown#getProperty(property)
+<a name="LevelDB_getProperty"></a>
+### LevelDB#getProperty(property)
 <code>getProperty</code> can be used to get internal details from LevelDB. When issued with a valid property string, a readable string will be returned (this method is synchronous).
 
 Currently, the only valid properties are:
@@ -262,8 +262,8 @@ Currently, the only valid properties are:
 
 
 --------------------------------------------------------
-<a name="leveldown_iterator"></a>
-### leveldown#iterator([options])
+<a name="LevelDB_iterator"></a>
+### LevelDB#iterator([options])
 <code>iterator()</code> is an instance method on an existing database object. It returns a new **Iterator** instance.
 
 #### `options`
@@ -321,14 +321,14 @@ Otherwise, the `callback` function will be called with the following 3 arguments
 
 
 --------------------------------------------------------
-<a name="leveldown_destroy"></a>
-### leveldown.destroy(location, callback)
+<a name="LevelDB_destroy"></a>
+### LevelDB.destroy(location, callback)
 <code>destroy()</code> is used to completely remove an existing LevelDB database directory. You can use this function in place of a full directory *rm* if you want to be sure to only remove LevelDB-related files. If the directory only contains LevelDB files, the directory itself will be removed as well. If there are additional, non-LevelDB files in the directory, those files, and the directory, will be left alone.
 
 The callback will be called when the destroy operation is complete, with a possible `error` argument.
 
-<a name="leveldown_repair"></a>
-### leveldown.repair(location, callback)
+<a name="LevelDB_repair"></a>
+### LevelDB.repair(location, callback)
 <code>repair()</code> can be used to attempt a restoration of a damaged LevelDB store. From the LevelDB documentation:
 
 > If a DB cannot be opened, you may attempt to call this method to resurrect as much of the contents of the database as possible. Some data may be lost, so be careful when calling this function on a database that contains important information.
@@ -346,9 +346,9 @@ Safety
 
 ### Database state
 
-Currently LevelDOWN does not track the state of the underlying LevelDB instance. This means that calling `open()` on an already open database may result in an error. Likewise, calling any other operation on a non-open database may result in an error.
+Currently LevelDB does not track the state of the underlying LevelDB instance. This means that calling `open()` on an already open database may result in an error. Likewise, calling any other operation on a non-open database may result in an error.
 
-LevelUP currently tracks and manages state and will prevent out-of-state operations from being send to LevelDOWN. If you use LevelDOWN directly then you must track and manage state for yourself.
+LevelUP currently tracks and manages state and will prevent out-of-state operations from being send to LevelDB. If you use LevelDB directly then you must track and manage state for yourself.
 
 <a name="support"></a>
 Getting support
@@ -364,15 +364,15 @@ There are multiple ways you can find help in using LevelDB in Node.js:
 Contributing
 ------------
 
-LevelDOWN is an **OPEN Open Source Project**. This means that:
+LevelDB is an **OPEN Open Source Project**. This means that:
 
 > Individuals making significant and valuable contributions are given commit-access to the project to contribute as they see fit. This project is more like an open wiki than a standard guarded open source project.
 
-See the [CONTRIBUTING.md](https://github.com/rvagg/node-leveldown/blob/master/CONTRIBUTING.md) file for more details.
+See the [CONTRIBUTING.md](https://github.com/rvagg/node-LevelDB/blob/master/CONTRIBUTING.md) file for more details.
 
 ### Contributors
 
-LevelDOWN is only possible due to the excellent work of the following contributors:
+LevelDB is only possible due to the excellent work of the following contributors:
 
 <table><tbody>
 <tr><th align="left">Riceball LEE</th><td><a href="https://github.com/snowyu">GitHub/snowyu</a></td><td></td></tr>
@@ -400,8 +400,8 @@ A large portion of the Windows support comes from code by [Krzysztof Kowalczyk](
 License &amp; copyright
 -------------------
 
-Copyright (c) 2012-2014 LevelDOWN contributors (listed above).
+Copyright (c) 2012-2014 LevelDB contributors (listed above).
 
-LevelDOWN is licensed under the MIT license. All rights not explicitly granted in the MIT license are reserved. See the included LICENSE.md file for more details.
+LevelDB is licensed under the MIT license. All rights not explicitly granted in the MIT license are reserved. See the included LICENSE.md file for more details.
 
-*LevelDOWN builds on the excellent work of the LevelDB and Snappy teams from Google and additional contributors. LevelDB and Snappy are both issued under the [New BSD Licence](http://opensource.org/licenses/BSD-3-Clause).*
+*LevelDB builds on the excellent work of the LevelDB and Snappy teams from Google and additional contributors. LevelDB and Snappy are both issued under the [New BSD Licence](http://opensource.org/licenses/BSD-3-Clause).*
