@@ -1,4 +1,4 @@
-LevelDB [LevelDB Logo](https://camo.githubusercontent.com/35c59b1270df115851d8f50b57c7eb2d916f61d4/68747470733a2f2f302e67726176617461722e636f6d2f6176617461722f6134393862313232616563623736373834393061333862623539336363313264) [![npm](https://img.shields.io/npm/v/nosql-leveldb.svg)](https://npmjs.org/package/nosql-leveldb)
+LevelDB ![LevelDB Logo](https://camo.githubusercontent.com/35c59b1270df115851d8f50b57c7eb2d916f61d4/68747470733a2f2f302e67726176617461722e636f6d2f6176617461722f6134393862313232616563623736373834393061333862623539336363313264) [![npm](https://img.shields.io/npm/v/nosql-leveldb.svg)](https://npmjs.org/package/nosql-leveldb)
 ======================
 
 [![Build Status](https://img.shields.io/travis/snowyu/node-nosql-leveldb/master.svg)](http://travis-ci.org/snowyu/node-nosql-leveldb) 
