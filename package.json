@@ -1,7 +1,7 @@
 {
   "name": "nosql-leveldb",
   "description": "A Node.js LevelDB binding with sync supports inherits from abstract-nosql.",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "contributors": [
     "Riceball LEE <snowyu.lee@gmail.com> (https://github.com/snowyu)",
     "Rod Vagg <r@va.gg> (https://github.com/rvagg)",
@@ -34,6 +34,7 @@
   ],
   "main": "leveldb.js",
   "dependencies": {
+    "abstract-error": "^1.0.1",
     "abstract-iterator": "~0.11.5",
     "abstract-nosql": "~2.1.0",
     "bindings": "~1.2.1",
@@ -53,7 +54,7 @@
     "tap": "~0.6.0"
   },
   "scripts": {
-   "prepublish": "coffee -c *.coffee",
+    "prepublish": "coffee -c *.coffee",
     "test": "tap test/*-test.js --stderr"
   },
   "license": "MIT",
