@@ -13,4 +13,5 @@ script: npm test
 
 before_install:
   - npm install -g npm@latest
+  - npm install -g coffee-script
 
