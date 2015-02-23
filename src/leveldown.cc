@@ -4,7 +4,10 @@
  */
 
 #include <node.h>
+#include <leveldb/db.h>
+#include <nan.h>
 
+#include "leveldb_status.h"
 #include "leveldown.h"
 #include "database.h"
 #include "iterator.h"
@@ -12,6 +15,37 @@
 #include "leveldown_async.h"
 
 namespace leveldown {
+
+NAN_METHOD(DestroyDBSync) {
+  NanScope();
+
+  if (args.Length() == 0 || !args[0]->IsString())
+    NanThrowError("DestroyDB require location:string argument", kInvalidArgument);
+  leveldb::Options options;
+  leveldb::Status status = leveldb::DestroyDB(*NanUtf8String(args[0]), options);
+  if (!status.ok()) {
+    Status* st = reinterpret_cast<Status*>(&status);
+    NanThrowError(status.ToString().c_str(), st->code());
+    NanReturnUndefined();
+  }
+
+  NanReturnValue(NanTrue());
+}
+
+NAN_METHOD(RepairDBSync) {
+  NanScope();
+  if (args.Length() == 0 || !args[0]->IsString())
+    NanThrowError("RepairDB require location:string argument", kInvalidArgument);
+  leveldb::Options options;
+  leveldb::Status status = leveldb::RepairDB(*NanUtf8String(args[0]), options);
+  if (!status.ok()) {
+    Status* st = reinterpret_cast<Status*>(&status);
+    NanThrowError(status.ToString().c_str(), st->code());
+    NanReturnUndefined();
+  }
+
+  NanReturnValue(NanTrue());
+}
 
 NAN_METHOD(DestroyDB) {
   NanScope();
@@ -65,6 +99,16 @@ void Init (v8::Handle<v8::Object> target) {
   leveldown->Set(
       NanNew("repair")
     , NanNew<v8::FunctionTemplate>(RepairDB)->GetFunction()
+  );
+
+  leveldown->Set(
+      NanNew("destroySync")
+    , NanNew<v8::FunctionTemplate>(DestroyDBSync)->GetFunction()
+  );
+
+  leveldown->Set(
+      NanNew("repairSync")
+    , NanNew<v8::FunctionTemplate>(RepairDBSync)->GetFunction()
   );
 
   target->Set(NanNew("leveldown"), leveldown);

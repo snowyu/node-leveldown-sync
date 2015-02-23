@@ -30,9 +30,15 @@ Tested & supported platforms
 
 ## Chnages
 
+### v2.1.x
+
++ [events-ex](https://github.com/snowyu/events-ex.js): hooked eventable ability.
+
 ### v2.x.x
 
 + the modularization(feature plugin) with [abstract-nosql](https://github.com/snowyu/node-abstract-nosql)
+  * [nosql-stream](https://github.com/snowyu/node-nosql-stream): streamable ability. you need implement the [AbstractIterator](https://github.com/snowyu/node-abstract-iterator).
+  * [nosql-encoding](https://github.com/snowyu/node-nosql-encoding): key/value encoding ability.
 - (`broken changes`) remove the streamable feature from buildin. this is a plugin now.
 - (`broken change`) defaults to disable asBuffer option.
   * pls use the `getBuffer` method to get as buffer.
