@@ -49,14 +49,16 @@
     "mkfiletree": "~0.0.1",
     "monotonic-timestamp": "~0.0.8",
     "node-gyp": "~1.0.1",
+    "pre-commit": "^1.0.7",
     "readfiletree": "~0.0.1",
     "rimraf": "~2.2.8",
     "tap": "~0.6.0"
   },
   "scripts": {
-    "prepublish": "coffee -c *.coffee",
+    "build": "coffee -c *.coffee",
     "test": "tap test/*-test.js --stderr"
   },
+  "pre-commit": ["build", "test"],
   "license": "MIT",
   "gypfile": true
 }
