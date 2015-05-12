@@ -2,7 +2,7 @@
 
 # Test against these versions of Node.js.
 environment:
-  PATH: %appveyor_build_folder%/npm/.bin;%PATH%
+  PATH: "%appveyor_build_folder%/npm/.bin;%PATH%"
   matrix:
     # node.js
     - nodejs_version: "0.10"
