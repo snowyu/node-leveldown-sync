@@ -40,7 +40,7 @@
     "bindings": "~1.2.1",
     "fast-future": "~1.0.0",
     "inherits-ex": "^1.0.6",
-    "nan": "~1.6.2",
+    "nan": "~1.8.4",
     "util-ex": "^0.2.9"
   },
   "devDependencies": {
