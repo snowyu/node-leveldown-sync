@@ -19,11 +19,11 @@ cache:
 install:
   # Get the latest stable version of Node 0.STABLE.latest
   - npm install npm
+  - npm install -g coffee-script
   - move node_modules npm
   - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version)
   # Typical npm stuff.
   - npm/.bin/npm install
-  - npm/.bin/npm install -g coffee-script
 
 # Post-install test scripts.
 test_script:
