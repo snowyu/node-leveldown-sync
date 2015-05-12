@@ -18,16 +18,17 @@ cache:
 # Install scripts. (runs after repo cloning)
 install:
   # Get the latest stable version of Node 0.STABLE.latest
-  - npm install -g npm
-  - npm install -g coffee-script
-  - set PATH=%APPDATA%\npm;%PATH%
+  - npm install npm
+  - npm install coffee-script
+  - move node_modules npm
+  - set PATH=./npm/.bin/;%PATH%
+  - echo %PATH%
   - node --version
   - npm --version
-  #- move node_modules npm
   - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version)
   # Typical npm stuff.
-  #- npm/.bin/npm install
-  - npm install
+  - npm/.bin/npm install
+  #- npm install
 
 # Post-install test scripts.
 test_script:
