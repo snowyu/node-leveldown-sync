@@ -20,7 +20,6 @@ test('test argument-less repair() throws', function (t) {
 test('test repair non-existant directory returns error sync', function (t) {
   t.throws(
       leveldown.repair.bind(null, '/1/2/3/4')
-    , { name: 'Error', message: 'IO error: /1/2/3/4: No such file or directory' }
     , 'callback-less, 1-arg repair() throws'
   )
   t.end()
@@ -29,7 +28,7 @@ test('test repair non-existant directory returns error sync', function (t) {
 test('test repair non-existant directory returns error', function (t) {
   leveldown.repair('/1/2/3/4', function (err) {
     console.log(err.message)
-    t.ok((/no such/i).test(err.message), 'error on callback')
+    t.ok((/IO error/i).test(err.message), 'error on callback')
     t.equal(err.code, AbstractError.IO)
     t.end()
   })
