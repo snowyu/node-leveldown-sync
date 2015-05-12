@@ -21,6 +21,8 @@ install:
   - npm install -g npm
   - npm install -g coffee-script
   - set PATH=%APPDATA%\npm;%PATH%
+  - node --version
+  - npm --version
   #- move node_modules npm
   - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version)
   # Typical npm stuff.
