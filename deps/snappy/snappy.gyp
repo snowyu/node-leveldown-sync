@@ -74,5 +74,7 @@
       , 'snappy-1.1.2/snappy-stubs-internal.h'
       , 'snappy-1.1.2/snappy.cc'
       , 'snappy-1.1.2/snappy.h'
+      , 'snappy-1.1.2/snappy-c.cc'
+      , 'snappy-1.1.2/snappy-c.h'
     ]
 }]}
