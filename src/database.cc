@@ -306,30 +306,13 @@ NAN_METHOD(Database::CloseSync) {
       // CloseWorker will be invoked
 
       leveldown::Iterator *iterator = it->second;
-
-      if (!iterator->ended) {
-        // v8::Local<v8::Function> end =
-        //     v8::Local<v8::Function>::Cast(iterator->handle()->Get(
-        //         Nan::New<v8::String>("endSync").ToLocalChecked()));
-        // v8::Local<v8::Value> argv[] = {
-        //     Nan::New<v8::FunctionTemplate>(EmptyMethod)->GetFunction() // empty callback
-        // };
-
-        //execute itResult = iterator.endSync()
-        bool itResult = Nan::To<bool>(Nan::MakeCallback(
-          iterator->handle() //target
-          , "endSync"        //func
-          , 0                //argument count
-          , NULL             //arguments
-        )).FromJust();
-        if (!itResult) result = false;
-      }
+      iterator->Free();
     }
   }
   if (result) {
     database->CloseDatabase();
   }
-  info.GetReturnValue().Set(result);
+  info.GetReturnValue().Set(true);
 }
 
 NAN_METHOD(Database::Close) {
@@ -363,9 +346,13 @@ NAN_METHOD(Database::Close) {
 
         leveldown::Iterator *iterator = it->second;
 
-        if (!iterator->ended) {
+        //TODO: CAN NOT LOCK iterator->ended will make itHandle release
+        if (iterator->TryLockEnd()) {
+          iterator->UnlockEnd();
+          v8::Local<v8::Object> itHandle = iterator->handle();
+          // printf("\nneed end iterator: %d\n", itHandle);
           v8::Local<v8::Function> end =
-              v8::Local<v8::Function>::Cast(iterator->handle()->Get(
+              v8::Local<v8::Function>::Cast(itHandle->Get(
                   Nan::New<v8::String>("end").ToLocalChecked()));
           v8::Local<v8::Value> argv[] = {
               Nan::New<v8::FunctionTemplate>(EmptyMethod)->GetFunction() // empty callback
@@ -386,8 +373,8 @@ NAN_METHOD(Database::Close) {
 NAN_METHOD(Database::Put) {
   LD_METHOD_SETUP_COMMON(put, 2, 3)
 
-  v8::Local<v8::Object> keyHandle = info[0].As<v8::Object>();
-  v8::Local<v8::Object> valueHandle = info[1].As<v8::Object>();
+  v8::Local<v8::Object> keyHandle = Nan::To<v8::Object>(info[0]).ToLocalChecked();
+  v8::Local<v8::Object> valueHandle = Nan::To<v8::Object>(info[1]).ToLocalChecked();
   LD_STRING_OR_BUFFER_TO_SLICE(key, keyHandle, key);
   LD_STRING_OR_BUFFER_TO_SLICE(value, valueHandle, value);
 
@@ -413,8 +400,8 @@ NAN_METHOD(Database::Put) {
 NAN_METHOD(Database::PutSync) {
   LD_METHOD_SETUP_SIMPLE(putSync, 1, 2)
 
-  v8::Local<v8::Object> keyHandle = info[0].As<v8::Object>();
-  v8::Local<v8::Object> valueHandle = info[1].As<v8::Object>();
+  v8::Local<v8::Object> keyHandle = Nan::To<v8::Object>(info[0]).ToLocalChecked();
+  v8::Local<v8::Object> valueHandle = Nan::To<v8::Object>(info[1]).ToLocalChecked();
   LD_STRING_OR_BUFFER_TO_SLICE(key, keyHandle, key);
   LD_STRING_OR_BUFFER_TO_SLICE(value, valueHandle, value);
 
@@ -435,7 +422,7 @@ NAN_METHOD(Database::PutSync) {
 NAN_METHOD(Database::Get) {
   LD_METHOD_SETUP_COMMON(get, 1, 2)
 
-  v8::Local<v8::Object> keyHandle = info[0].As<v8::Object>();
+  v8::Local<v8::Object> keyHandle = Nan::To<v8::Object>(info[0]).ToLocalChecked();
   LD_STRING_OR_BUFFER_TO_SLICE(key, keyHandle, key);
 
   bool asBuffer = BooleanOptionValue(optionsObj, "asBuffer", true);
@@ -459,7 +446,7 @@ NAN_METHOD(Database::Get) {
 NAN_METHOD(Database::GetSync) {
   LD_METHOD_SETUP_SIMPLE(getSync, 0, 1)
 
-  v8::Local<v8::Object> keyHandle = info[0].As<v8::Object>();
+  v8::Local<v8::Object> keyHandle = Nan::To<v8::Object>(info[0]).ToLocalChecked();
   LD_STRING_OR_BUFFER_TO_SLICE(key, keyHandle, key);
   std::string value;
 
@@ -481,7 +468,7 @@ NAN_METHOD(Database::GetSync) {
 NAN_METHOD(Database::Delete) {
   LD_METHOD_SETUP_COMMON(del, 1, 2)
 
-  v8::Local<v8::Object> keyHandle = info[0].As<v8::Object>();
+  v8::Local<v8::Object> keyHandle = Nan::To<v8::Object>(info[0]).ToLocalChecked();
   LD_STRING_OR_BUFFER_TO_SLICE(key, keyHandle, key);
 
   bool sync = BooleanOptionValue(optionsObj, "sync");
@@ -502,7 +489,7 @@ NAN_METHOD(Database::Delete) {
 NAN_METHOD(Database::DeleteSync) {
   LD_METHOD_SETUP_SIMPLE(delSync, 1, 2)
 
-  v8::Local<v8::Object> keyHandle = info[0].As<v8::Object>();
+  v8::Local<v8::Object> keyHandle = Nan::To<v8::Object>(info[0]).ToLocalChecked();
   LD_STRING_OR_BUFFER_TO_SLICE(key, keyHandle, key);
 
   bool sync = BooleanOptionValue(optionsObj, "sync");
@@ -521,7 +508,7 @@ NAN_METHOD(Database::Batch) {
   if ((info.Length() == 0 || info.Length() == 1) && !info[0]->IsArray()) {
     v8::Local<v8::Object> optionsObj;
     if (info.Length() > 0 && info[0]->IsObject()) {
-      optionsObj = info[0].As<v8::Object>();
+      optionsObj = Nan::To<v8::Object>(info[0]).ToLocalChecked();
     }
     info.GetReturnValue().Set(Batch::NewInstance(info.This(), optionsObj));
     return;
@@ -588,7 +575,7 @@ NAN_METHOD(Database::BatchSync) {
   if ((info.Length() == 0 || info.Length() == 1) && !info[0]->IsArray()) {
     v8::Local<v8::Object> optionsObj;
     if (info.Length() > 0 && info[0]->IsObject()) {
-      optionsObj = info[0].As<v8::Object>();
+      optionsObj = Nan::To<v8::Object>(info[0]).ToLocalChecked();
     }
     info.GetReturnValue().Set(Batch::NewInstance(info.This(), optionsObj));
     return;
@@ -645,8 +632,8 @@ NAN_METHOD(Database::BatchSync) {
 }
 
 NAN_METHOD(Database::ApproximateSize) {
-  v8::Local<v8::Object> startHandle = info[0].As<v8::Object>();
-  v8::Local<v8::Object> endHandle = info[1].As<v8::Object>();
+  v8::Local<v8::Object> startHandle = Nan::To<v8::Object>(info[0]).ToLocalChecked();
+  v8::Local<v8::Object> endHandle = Nan::To<v8::Object>(info[1]).ToLocalChecked();
 
   LD_METHOD_SETUP_COMMON(approximateSize, -1, 2)
 
@@ -670,8 +657,8 @@ NAN_METHOD(Database::ApproximateSize) {
 NAN_METHOD(Database::ApproximateSizeSync) {
   LD_METHOD_SETUP_SIMPLE(approximateSizeSync, 1, -1);
 
-  v8::Local<v8::Object> startHandle = info[0].As<v8::Object>();
-  v8::Local<v8::Object> endHandle = info[1].As<v8::Object>();
+  v8::Local<v8::Object> startHandle = Nan::To<v8::Object>(info[0]).ToLocalChecked();
+  v8::Local<v8::Object> endHandle = Nan::To<v8::Object>(info[1]).ToLocalChecked();
 
   LD_STRING_OR_BUFFER_TO_SLICE(start, startHandle, start)
   LD_STRING_OR_BUFFER_TO_SLICE(end, endHandle, end)
@@ -686,8 +673,8 @@ NAN_METHOD(Database::ApproximateSizeSync) {
 }
 
 NAN_METHOD(Database::CompactRange) {
-  v8::Local<v8::Object> startHandle = info[0].As<v8::Object>();
-  v8::Local<v8::Object> endHandle = info[1].As<v8::Object>();
+  v8::Local<v8::Object> startHandle = Nan::To<v8::Object>(info[0]).ToLocalChecked();
+  v8::Local<v8::Object> endHandle = Nan::To<v8::Object>(info[1]).ToLocalChecked();
 
   LD_METHOD_SETUP_COMMON(compactRange, -1, 2)
   LD_STRING_OR_BUFFER_TO_SLICE(start, startHandle, start)
@@ -710,8 +697,8 @@ NAN_METHOD(Database::CompactRange) {
 NAN_METHOD(Database::CompactRangeSync) {
   LD_METHOD_SETUP_SIMPLE(compactRangeSync, 1, -1);
 
-  v8::Local<v8::Object> startHandle = info[0].As<v8::Object>();
-  v8::Local<v8::Object> endHandle = info[1].As<v8::Object>();
+  v8::Local<v8::Object> startHandle = Nan::To<v8::Object>(info[0]).ToLocalChecked();
+  v8::Local<v8::Object> endHandle = Nan::To<v8::Object>(info[1]).ToLocalChecked();
 
   LD_STRING_OR_BUFFER_TO_SLICE(start, startHandle, start)
   LD_STRING_OR_BUFFER_TO_SLICE(end, endHandle, end)
@@ -725,7 +712,7 @@ NAN_METHOD(Database::CompactRangeSync) {
 }
 
 NAN_METHOD(Database::GetProperty) {
-  v8::Local<v8::Value> propertyHandle = info[0].As<v8::Object>();
+  v8::Local<v8::Value> propertyHandle = Nan::To<v8::Object>(info[0]).ToLocalChecked();
   v8::Local<v8::Function> callback; // for LD_STRING_OR_BUFFER_TO_SLICE
 
   LD_STRING_OR_BUFFER_TO_SLICE(property, propertyHandle, property)
@@ -847,7 +834,7 @@ NAN_METHOD(Database::IsExistsSync) {
   LD_METHOD_SETUP_SIMPLE(getSync, 0, 1)
 
   bool result = false;
-  v8::Local<v8::Object> keyHandle = info[0].As<v8::Object>();
+  v8::Local<v8::Object> keyHandle = Nan::To<v8::Object>(info[0]).ToLocalChecked();
   LD_STRING_OR_BUFFER_TO_SLICE(key, keyHandle, key);
   std::string value;
 
@@ -876,7 +863,7 @@ NAN_METHOD(Database::GetBufferSync) {
   LD_METHOD_SETUP_SIMPLE(getSync, 1, 2)
 
 
-  v8::Local<v8::Object> keyHandle = info[0].As<v8::Object>();
+  v8::Local<v8::Object> keyHandle = Nan::To<v8::Object>(info[0]).ToLocalChecked();
   LD_STRING_OR_BUFFER_TO_SLICE(key, keyHandle, key);
   std::string value;
 
