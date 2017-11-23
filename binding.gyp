@@ -20,6 +20,10 @@
               ]
             , 'cflags!': [ '-fno-tree-vrp' ]
           }]
+        , ['target_arch == "arm"', {
+              'cflags': [ '-mfloat-abi=hard'
+              ]
+          }]
         ]
       , "dependencies": [
             "<(module_root_dir)/deps/leveldb/leveldb.gyp:leveldb"

@@ -1,6 +1,6 @@
-/* Copyright (c) 2012-2014 LevelDOWN contributors
- * See list at <https://github.com/rvagg/node-leveldown#contributing>
- * MIT License <https://github.com/rvagg/node-leveldown/blob/master/LICENSE.md>
+/* Copyright (c) 2012-2017 LevelDOWN contributors
+ * See list at <https://github.com/level/leveldown#contributing>
+ * MIT License <https://github.com/level/leveldown/blob/master/LICENSE.md>
  */
 
 #ifndef LD_ASYNC_H
@@ -14,49 +14,22 @@ namespace leveldown {
 
 class Database;
 
-/* abstract */ class AsyncWorker : public NanAsyncWorker {
+/* abstract */ class AsyncWorker : public Nan::AsyncWorker {
 public:
   AsyncWorker (
       leveldown::Database* database
-    , NanCallback *callback
-  ) : NanAsyncWorker(callback), database(database) {
-    NanScope();
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
-    NanAssignPersistent(persistentHandle, obj);
-  }
+    , Nan::Callback *callback
+  ) : Nan::AsyncWorker(callback), database(database) { }
 
 protected:
-  void HandleErrorCallback() {
-    NanScope();
-
-    v8::Local<v8::Value> err = v8::Exception::Error(NanNew<v8::String>(ErrorMessage()));
-    if (hasErrorCode) {
-      v8::Local<v8::Object> obj = err.As<v8::Object>();
-      obj->Set(NanNew<v8::String>("code"), NanNew<v8::Integer>(errorCode));
-    }
-
-    v8::Local<v8::Value> argv[] = {err};
-    callback->Call(1, argv);
-  }
-
-  void SetErrorCode(const char *msg, const int code) {
-    SetErrorMessage(msg);
-    hasErrorCode = true;
-    errorCode=code;
-  }
-
   void SetStatus(leveldb::Status status) {
     this->status = status;
-    if (!status.ok()) {
-      Status* st = reinterpret_cast<Status*>(&status);
-      SetErrorCode(status.ToString().c_str(), st->code());
-    }
+    if (!status.ok())
+      SetErrorMessage(status.ToString().c_str());
   }
   Database* database;
 private:
   leveldb::Status status;
-  bool hasErrorCode;
-  int errorCode;
 };
 
 } // namespace leveldown

@@ -1,11 +1,9 @@
-/* Copyright (c) 2012-2014 LevelDOWN contributors
- * See list at <https://github.com/rvagg/node-leveldown#contributing>
- * MIT License <https://github.com/rvagg/node-leveldown/blob/master/LICENSE.md>
+/* Copyright (c) 2012-2017 LevelDOWN contributors
+ * See list at <https://github.com/level/leveldown#contributing>
+ * MIT License <https://github.com/level/leveldown/blob/master/LICENSE.md>
  */
 
 #include <node.h>
-#include <leveldb/db.h>
-#include <nan.h>
 
 #include "leveldb_status.h"
 #include "leveldown.h"
@@ -17,101 +15,102 @@
 namespace leveldown {
 
 NAN_METHOD(DestroyDBSync) {
-  NanScope();
+  Nan::HandleScope scope;
 
-  if (args.Length() == 0 || !args[0]->IsString())
-    NanThrowError("DestroyDB require location:string argument", kInvalidArgument);
+  if (info.Length() == 0 || !info[0]->IsString())
+    return Nan::ThrowError(Nan::ErrnoException(kInvalidArgument, "destroySync", "destroySync require location:string argument"));
+
+  Nan::Utf8String* location = new Nan::Utf8String(info[0]);
+
   leveldb::Options options;
-  leveldb::Status status = leveldb::DestroyDB(*NanUtf8String(args[0]), options);
-  if (!status.ok()) {
-    Status* st = reinterpret_cast<Status*>(&status);
-    NanThrowError(status.ToString().c_str(), st->code());
-    NanReturnUndefined();
-  }
+  leveldb::Status status = leveldb::DestroyDB(**location, options);
+  delete location;
+  LD_METHOD_CHECK_DB_ERROR(destroySync)
 
-  NanReturnValue(NanTrue());
+  info.GetReturnValue().Set(true);
 }
 
 NAN_METHOD(RepairDBSync) {
-  NanScope();
-  if (args.Length() == 0 || !args[0]->IsString())
-    NanThrowError("RepairDB require location:string argument", kInvalidArgument);
-  leveldb::Options options;
-  leveldb::Status status = leveldb::RepairDB(*NanUtf8String(args[0]), options);
-  if (!status.ok()) {
-    Status* st = reinterpret_cast<Status*>(&status);
-    NanThrowError(status.ToString().c_str(), st->code());
-    NanReturnUndefined();
-  }
+  Nan::HandleScope scope;
 
-  NanReturnValue(NanTrue());
+  if (info.Length() == 0 || !info[0]->IsString())
+    return Nan::ThrowError(Nan::ErrnoException(kInvalidArgument, "repairSync", "repairSync require location:string argument"));
+
+  Nan::Utf8String* location = new Nan::Utf8String(info[0]);
+
+  leveldb::Options options;
+  leveldb::Status status = leveldb::RepairDB(**location, options);
+  delete location;
+  LD_METHOD_CHECK_DB_ERROR(repairSync)
+
+  info.GetReturnValue().Set(true);
 }
 
 NAN_METHOD(DestroyDB) {
-  NanScope();
+  Nan::HandleScope scope;
 
-  NanUtf8String* location = new NanUtf8String(args[0]);
+  Nan::Utf8String* location = new Nan::Utf8String(info[0]);
 
-  NanCallback* callback = new NanCallback(
-      v8::Local<v8::Function>::Cast(args[1]));
+  Nan::Callback* callback = new Nan::Callback(
+      v8::Local<v8::Function>::Cast(info[1]));
 
   DestroyWorker* worker = new DestroyWorker(
       location
     , callback
   );
 
-  NanAsyncQueueWorker(worker);
+  Nan::AsyncQueueWorker(worker);
 
-  NanReturnUndefined();
+  info.GetReturnValue().SetUndefined();
 }
 
 NAN_METHOD(RepairDB) {
-  NanScope();
+  Nan::HandleScope scope;
 
-  NanUtf8String* location = new NanUtf8String(args[0]);
+  Nan::Utf8String* location = new Nan::Utf8String(info[0]);
 
-  NanCallback* callback = new NanCallback(
-      v8::Local<v8::Function>::Cast(args[1]));
+  Nan::Callback* callback = new Nan::Callback(
+      v8::Local<v8::Function>::Cast(info[1]));
 
   RepairWorker* worker = new RepairWorker(
       location
     , callback
   );
 
-  NanAsyncQueueWorker(worker);
+  Nan::AsyncQueueWorker(worker);
 
-  NanReturnUndefined();
+  info.GetReturnValue().SetUndefined();
 }
 
-void Init (v8::Handle<v8::Object> target) {
+void Init (v8::Local<v8::Object> target) {
   Database::Init();
   leveldown::Iterator::Init();
   leveldown::Batch::Init();
 
   v8::Local<v8::Function> leveldown =
-      NanNew<v8::FunctionTemplate>(LevelDOWN)->GetFunction();
+      Nan::New<v8::FunctionTemplate>(LevelDOWN)->GetFunction();
 
   leveldown->Set(
-      NanNew("destroy")
-    , NanNew<v8::FunctionTemplate>(DestroyDB)->GetFunction()
+      Nan::New("destroy").ToLocalChecked()
+    , Nan::New<v8::FunctionTemplate>(DestroyDB)->GetFunction()
   );
 
   leveldown->Set(
-      NanNew("repair")
-    , NanNew<v8::FunctionTemplate>(RepairDB)->GetFunction()
+      Nan::New("repair").ToLocalChecked()
+    , Nan::New<v8::FunctionTemplate>(RepairDB)->GetFunction()
   );
 
   leveldown->Set(
-      NanNew("destroySync")
-    , NanNew<v8::FunctionTemplate>(DestroyDBSync)->GetFunction()
+      Nan::New("destroySync").ToLocalChecked()
+    , Nan::New<v8::FunctionTemplate>(DestroyDBSync)->GetFunction()
   );
 
   leveldown->Set(
-      NanNew("repairSync")
-    , NanNew<v8::FunctionTemplate>(RepairDBSync)->GetFunction()
+      Nan::New("repairSync").ToLocalChecked()
+    , Nan::New<v8::FunctionTemplate>(RepairDBSync)->GetFunction()
   );
 
-  target->Set(NanNew("leveldown"), leveldown);
+  target->Set(Nan::New("leveldown").ToLocalChecked(), leveldown);
 }
 
 NODE_MODULE(leveldown, Init)

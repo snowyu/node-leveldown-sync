@@ -1,6 +1,6 @@
-/* Copyright (c) 2012-2014 LevelDOWN contributors
- * See list at <https://github.com/rvagg/node-leveldown#contributing>
- * MIT License <https://github.com/rvagg/node-leveldown/blob/master/LICENSE.md>
+/* Copyright (c) 2012-2017 LevelDOWN contributors
+ * See list at <https://github.com/level/leveldown#contributing>
+ * MIT License <https://github.com/level/leveldown/blob/master/LICENSE.md>
  */
 
 #ifndef LD_ITERATOR_H
@@ -19,7 +19,7 @@ namespace leveldown {
 class Database;
 class AsyncWorker;
 
-class Iterator : public node::ObjectWrap {
+class Iterator : public Nan::ObjectWrap {
 public:
   static void Init ();
   static v8::Local<v8::Object> NewInstance (
@@ -32,63 +32,72 @@ public:
       Database* database
     , uint32_t id
     , leveldb::Slice* start
-    , std::string end
-    , bool skipStart
-    , bool skipEnd
-    , bool noReverse
+    , std::string* end
+    , bool reverse
     , bool keys
     , bool values
     , int limit
+    // , bool skipStart
+    // , bool skipEnd
+    , std::string* lt
+    , std::string* lte
+    , std::string* gt
+    , std::string* gte
     , bool fillCache
     , bool keyAsBuffer
     , bool valueAsBuffer
-    , v8::Local<v8::Object> &startHandle
     , size_t highWaterMark
-  );
+);
 
   ~Iterator ();
 
-  bool IteratorNext (std::vector<std::pair<std::string, std::string> >& results);
-  bool IteratorNext2 (std::vector<std::pair<std::string, std::string> >& results);
+  bool IteratorNext (std::vector<std::pair<std::string, std::string> >& result);
   leveldb::Status IteratorStatus ();
   void IteratorEnd ();
   void Release ();
+  void ReleaseTarget ();
 
 private:
   Database* database;
   uint32_t id;
   leveldb::Iterator* dbIterator;
-  leveldb::ReadOptions options;
+  leveldb::ReadOptions* options;
   leveldb::Slice* start;
-  std::string end;
-  bool skipStart;
-  bool skipEnd;
-  bool noReverse;
+  leveldb::Slice* target;
+  std::string* end;
+  bool seeking;
+  bool landed;
+  bool reverse;
+  bool keys;
+  bool values;
   int limit;
+  // bool skipStart;
+  // bool skipEnd;
+  std::string* lt;
+  std::string* lte;
+  std::string* gt;
+  std::string* gte;
+  int count;
   size_t highWaterMark;
 
 public:
-  bool keys;
-  bool values;
   bool keyAsBuffer;
   bool valueAsBuffer;
   bool nexting;
   bool ended;
-  int count;
   AsyncWorker* endWorker;
 
 private:
-  v8::Persistent<v8::Object> persistentHandle;
-
-  inline bool Read (std::string& key, std::string& value);
-  inline void InitDbIterator();
+  bool Read (std::string& key, std::string& value);
   bool GetIterator ();
+  bool OutOfRange (leveldb::Slice* target);
 
   static NAN_METHOD(New);
+  static NAN_METHOD(Seek);
   static NAN_METHOD(Next);
-  static NAN_METHOD(NextSync);
   static NAN_METHOD(End);
   static NAN_METHOD(EndSync);
+  static NAN_METHOD(NextSync);
 };
 
 } // namespace leveldown

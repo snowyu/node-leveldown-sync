@@ -1,7 +1,7 @@
 {'targets': [{
     'target_name': 'leveldb'
   , 'variables': {
-        'ldbversion': '1.18'
+        'ldbversion': '1.20'
     }
   , 'type': 'static_library'
 		# Overcomes an issue with the linker and thin .a files on SmartOS
@@ -26,9 +26,13 @@
     ]
   , 'conditions': [
         ['OS == "win"', {
+            'conditions': [
+                ['MSVS_VERSION != "2015" and MSVS_VERSION != "2013"', {
+                     'include_dirs': [ 'leveldb-<(ldbversion)/port/win' ]
+                }]
+            ],
             'include_dirs': [
-                'leveldb-<(ldbversion)/port/win'
-              , 'port-libuv/'
+                'port-libuv/'
             ]
           , 'defines': [
                 'LEVELDB_PLATFORM_UV=1'
@@ -96,6 +100,21 @@
                 '-Wno-sign-compare'
             ]
         }]
+      , ['OS == "openbsd"', {
+            'defines': [
+                'OS_OPENBSD=1'
+              , '_REENTRANT=1'
+            ]
+          , 'libraries': [
+                '-lpthread'
+            ]
+          , 'ccflags': [
+                '-pthread'
+            ]
+          , 'cflags': [
+                '-Wno-sign-compare'
+            ]
+        }]
       , ['OS == "solaris"', {
             'defines': [
                 'OS_SOLARIS=1'
@@ -123,6 +142,11 @@
                 ]
             }
         }]
+      , ['target_arch == "arm"', {
+            'cflags': [
+	        '-mfloat-abi=hard'
+	    ]
+        }]
     ]
   , 'sources': [
         'leveldb-<(ldbversion)/db/builder.cc'
@@ -135,7 +159,6 @@
       , 'leveldb-<(ldbversion)/db/filename.h'
       , 'leveldb-<(ldbversion)/db/dbformat.cc'
       , 'leveldb-<(ldbversion)/db/dbformat.h'
-      , 'leveldb-<(ldbversion)/db/leveldb_main.cc'
       , 'leveldb-<(ldbversion)/db/log_format.h'
       , 'leveldb-<(ldbversion)/db/log_reader.cc'
       , 'leveldb-<(ldbversion)/db/log_reader.h'
@@ -170,6 +193,7 @@
       , 'leveldb-<(ldbversion)/include/leveldb/table_builder.h'
       , 'leveldb-<(ldbversion)/include/leveldb/write_batch.h'
       , 'leveldb-<(ldbversion)/port/port.h'
+      , 'leveldb-<(ldbversion)/port/port_posix_sse.cc'
       , 'leveldb-<(ldbversion)/table/block.cc'
       , 'leveldb-<(ldbversion)/table/block.h'
       , 'leveldb-<(ldbversion)/table/block_builder.cc'
@@ -199,7 +223,6 @@
       , 'leveldb-<(ldbversion)/util/filter_policy.cc'
       , 'leveldb-<(ldbversion)/util/hash.cc'
       , 'leveldb-<(ldbversion)/util/hash.h'
-      , 'leveldb-<(ldbversion)/util/hash_test.cc'
       , 'leveldb-<(ldbversion)/util/logging.cc'
       , 'leveldb-<(ldbversion)/util/logging.h'
       , 'leveldb-<(ldbversion)/util/mutexlock.h'

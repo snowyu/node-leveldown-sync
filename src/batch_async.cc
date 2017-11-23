@@ -1,6 +1,6 @@
-/* Copyright (c) 2012-2014 LevelDOWN contributors
- * See list at <https://github.com/rvagg/node-leveldown#contributing>
- * MIT License <https://github.com/rvagg/node-leveldown/blob/master/LICENSE.md>
+/* Copyright (c) 2012-2017 LevelDOWN contributors
+ * See list at <https://github.com/level/leveldown#contributing>
+ * MIT License <https://github.com/level/leveldown/blob/master/LICENSE.md>
  */
 
 
@@ -14,7 +14,7 @@ namespace leveldown {
 
 BatchWriteWorker::BatchWriteWorker (
     Batch* batch
-  , NanCallback *callback
+  , Nan::Callback *callback
 ) : AsyncWorker(NULL, callback)
   , batch(batch)
 {};

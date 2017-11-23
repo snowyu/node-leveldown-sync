@@ -1,6 +1,6 @@
-/* Copyright (c) 2012-2014 LevelDOWN contributors
- * See list at <https://github.com/rvagg/node-leveldown#contributing>
- * MIT License <https://github.com/rvagg/node-leveldown/blob/master/LICENSE.md>
+/* Copyright (c) 2012-2017 LevelDOWN contributors
+ * See list at <https://github.com/level/leveldown#contributing>
+ * MIT License <https://github.com/level/leveldown/blob/master/LICENSE.md>
  */
 
 #ifndef LD_DATABASE_ASYNC_H
@@ -19,7 +19,7 @@ class OpenWorker : public AsyncWorker {
 public:
   OpenWorker (
       Database *database
-    , NanCallback *callback
+    , Nan::Callback *callback
     , leveldb::Cache* blockCache
     , const leveldb::FilterPolicy* filterPolicy
     , bool createIfMissing
@@ -29,6 +29,7 @@ public:
     , uint32_t blockSize
     , uint32_t maxOpenFiles
     , uint32_t blockRestartInterval
+    , uint32_t maxFileSize
   );
 
   virtual ~OpenWorker ();
@@ -42,7 +43,7 @@ class CloseWorker : public AsyncWorker {
 public:
   CloseWorker (
       Database *database
-    , NanCallback *callback
+    , Nan::Callback *callback
   );
 
   virtual ~CloseWorker ();
@@ -54,7 +55,7 @@ class IOWorker    : public AsyncWorker {
 public:
   IOWorker (
       Database *database
-    , NanCallback *callback
+    , Nan::Callback *callback
     , leveldb::Slice key
     , v8::Local<v8::Object> &keyHandle
   );
@@ -70,7 +71,7 @@ class ReadWorker : public IOWorker {
 public:
   ReadWorker (
       Database *database
-    , NanCallback *callback
+    , Nan::Callback *callback
     , leveldb::Slice key
     , bool asBuffer
     , bool fillCache
@@ -91,7 +92,7 @@ class DeleteWorker : public IOWorker {
 public:
   DeleteWorker (
       Database *database
-    , NanCallback *callback
+    , Nan::Callback *callback
     , leveldb::Slice key
     , bool sync
     , v8::Local<v8::Object> &keyHandle
@@ -108,7 +109,7 @@ class WriteWorker : public DeleteWorker {
 public:
   WriteWorker (
       Database *database
-    , NanCallback *callback
+    , Nan::Callback *callback
     , leveldb::Slice key
     , leveldb::Slice value
     , bool sync
@@ -128,7 +129,7 @@ class BatchWorker : public AsyncWorker {
 public:
   BatchWorker (
       Database *database
-    , NanCallback *callback
+    , Nan::Callback *callback
     , leveldb::WriteBatch* batch
     , bool sync
   );
@@ -145,7 +146,7 @@ class ApproximateSizeWorker : public AsyncWorker {
 public:
   ApproximateSizeWorker (
       Database *database
-    , NanCallback *callback
+    , Nan::Callback *callback
     , leveldb::Slice start
     , leveldb::Slice end
     , v8::Local<v8::Object> &startHandle
@@ -161,6 +162,28 @@ public:
     leveldb::Range range;
     uint64_t size;
 };
+
+class CompactRangeWorker : public AsyncWorker {
+public:
+  CompactRangeWorker (
+      Database *database
+    , Nan::Callback *callback
+    , leveldb::Slice start
+    , leveldb::Slice end
+    , v8::Local<v8::Object> &startHandle
+    , v8::Local<v8::Object> &endHandle
+  );
+
+  virtual ~CompactRangeWorker ();
+  virtual void Execute ();
+  virtual void HandleOKCallback ();
+  virtual void WorkComplete ();
+
+  private:
+    leveldb::Slice rangeStart;
+    leveldb::Slice rangeEnd;
+};
+
 
 } // namespace leveldown
 

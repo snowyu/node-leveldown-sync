@@ -1,7 +1,7 @@
 const test          = require('tap').test
     , testCommon    = require('abstract-nosql/testCommon')
     , leveldown     = require('../')
-    , child_process = require('child_process') 
+    , child_process = require('child_process')
 
 var db
   , sourceData = (function () {
@@ -34,15 +34,16 @@ test('try to create an iterator with a blown stack', function (t) {
   // causes the child process to die for other reasons.
   var opts  = { execArgv: ["--stack-size=128"] }
   ,   child = child_process.fork(__dirname + '/stack-blower.js', ["run"], opts)
-  
+
   child.on('message', function (m) {
       t.ok(true, m)
       child.disconnect()
-      
-      t.end()
+
+      // t.end()
     })
     .on('exit', function (code, sig) {
-      t.ok(false, "Child exited with code=" + code + " sig=" + sig)
+      // console.log("Child exited with code=" + code + " sig=" + sig)
+      t.ok(code == 0, "Child exited with code=" + code + " sig=" + sig)
 
       t.end()
     })

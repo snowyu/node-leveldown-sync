@@ -1,6 +1,6 @@
-/* Copyright (c) 2012-2014 LevelDOWN contributors
- * See list at <https://github.com/rvagg/node-leveldown#contributing>
- * MIT License <https://github.com/rvagg/node-leveldown/blob/master/LICENSE.md>
+/* Copyright (c) 2012-2017 LevelDOWN contributors
+ * See list at <https://github.com/level/leveldown#contributing>
+ * MIT License <https://github.com/level/leveldown/blob/master/LICENSE.md>
  */
 
 #include <node.h>
@@ -17,7 +17,7 @@ namespace leveldown {
 
 NextWorker::NextWorker (
     Iterator* iterator
-  , NanCallback *callback
+  , Nan::Callback *callback
   , void (*localCallback)(Iterator*)
 ) : AsyncWorker(NULL, callback)
   , iterator(iterator)
@@ -33,10 +33,11 @@ void NextWorker::Execute () {
 }
 
 void NextWorker::HandleOKCallback () {
+  Nan::HandleScope scope;
   size_t idx = 0;
 
   size_t arraySize = result.size() * 2;
-  v8::Local<v8::Array> returnArray = NanNew<v8::Array>(arraySize);
+  v8::Local<v8::Array> returnArray = Nan::New<v8::Array>(arraySize);
 
   for(idx = 0; idx < result.size(); ++idx) {
     std::pair<std::string, std::string> row = result[idx];
@@ -44,40 +45,34 @@ void NextWorker::HandleOKCallback () {
     std::string value = row.second;
 
     v8::Local<v8::Value> returnKey;
-    if (iterator->keys) {
-      if (iterator->keyAsBuffer) {
-        returnKey = NanNewBufferHandle((char*)key.data(), key.size());
-      } else {
-        returnKey = NanNew<v8::String>((char*)key.data(), key.size());
-      }
+    if (iterator->keyAsBuffer) {
+      //TODO: use NewBuffer, see database_async.cc
+      returnKey = Nan::CopyBuffer((char*)key.data(), key.size()).ToLocalChecked();
     } else {
-      returnKey = NanNull();
+      returnKey = Nan::New<v8::String>((char*)key.data(), key.size()).ToLocalChecked();
     }
 
     v8::Local<v8::Value> returnValue;
-    if (iterator->values) {
-      if (iterator->valueAsBuffer) {
-        returnValue = NanNewBufferHandle((char*)value.data(), value.size());
-      } else {
-        returnValue = NanNew<v8::String>((char*)value.data(), value.size());
-      }
+    if (iterator->valueAsBuffer) {
+      //TODO: use NewBuffer, see database_async.cc
+      returnValue = Nan::CopyBuffer((char*)value.data(), value.size()).ToLocalChecked();
     } else {
-      returnValue = NanNull();
+      returnValue = Nan::New<v8::String>((char*)value.data(), value.size()).ToLocalChecked();
     }
 
     // put the key & value in a descending order, so that they can be .pop:ed in javascript-land
-    returnArray->Set(NanNew<v8::Integer>(static_cast<int>(arraySize - idx * 2 - 1)), returnKey);
-    returnArray->Set(NanNew<v8::Integer>(static_cast<int>(arraySize - idx * 2 - 2)), returnValue);
+    returnArray->Set(Nan::New<v8::Integer>(static_cast<int>(arraySize - idx * 2 - 1)), returnKey);
+    returnArray->Set(Nan::New<v8::Integer>(static_cast<int>(arraySize - idx * 2 - 2)), returnValue);
   }
 
   // clean up & handle the next/end state see iterator.cc/checkEndCallback
   localCallback(iterator);
 
   v8::Local<v8::Value> argv[] = {
-      NanNull()
+      Nan::Null()
     , returnArray
     // when ok === false all data has been read, so it's then finished
-    , NanNew<v8::Boolean>(!ok)
+    , Nan::New<v8::Boolean>(!ok)
   };
   callback->Call(3, argv);
 }
@@ -86,19 +81,19 @@ void NextWorker::HandleOKCallback () {
 
 EndWorker::EndWorker (
     Iterator* iterator
-  , NanCallback *callback
+  , Nan::Callback *callback
 ) : AsyncWorker(NULL, callback)
   , iterator(iterator)
 {};
 
-EndWorker::~EndWorker () {}
+EndWorker::~EndWorker () { }
 
 void EndWorker::Execute () {
   iterator->IteratorEnd();
 }
 
 void EndWorker::HandleOKCallback () {
-  //iterator->Release();
+  iterator->Release();
   callback->Call(0, NULL);
 }
 

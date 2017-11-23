@@ -1,6 +1,6 @@
-/* Copyright (c) 2012-2014 LevelDOWN contributors
- * See list at <https://github.com/rvagg/node-leveldown#contributing>
- * MIT License <https://github.com/rvagg/node-leveldown/blob/master/LICENSE.md>
+/* Copyright (c) 2012-2017 LevelDOWN contributors
+ * See list at <https://github.com/level/leveldown#contributing>
+ * MIT License <https://github.com/level/leveldown/blob/master/LICENSE.md>
  */
 
 #include <leveldb/db.h>
@@ -13,8 +13,8 @@ namespace leveldown {
 /** DESTROY WORKER **/
 
 DestroyWorker::DestroyWorker (
-    NanUtf8String* location
-  , NanCallback *callback
+    Nan::Utf8String* location
+  , Nan::Callback *callback
 ) : AsyncWorker(NULL, callback)
   , location(location)
 {};
@@ -31,8 +31,8 @@ void DestroyWorker::Execute () {
 /** REPAIR WORKER **/
 
 RepairWorker::RepairWorker (
-    NanUtf8String* location
-  , NanCallback *callback
+    Nan::Utf8String* location
+  , Nan::Callback *callback
 ) : AsyncWorker(NULL, callback)
   , location(location)
 {};
