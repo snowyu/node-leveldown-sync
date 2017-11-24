@@ -1,6 +1,7 @@
 {
     "targets": [{
       "target_name": "leveldown"
+    # , "cflags": ['-g'] # embed debug info: node-gyp build -d
     , "conditions": [
           ["OS == 'win'", {
               "defines": [
