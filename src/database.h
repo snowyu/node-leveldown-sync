@@ -82,6 +82,7 @@ public:
   leveldb::Iterator* NewIterator (leveldb::ReadOptions* options);
   const leveldb::Snapshot* NewSnapshot ();
   void ReleaseSnapshot (const leveldb::Snapshot* snapshot);
+  void CloseIterators ();
   void CloseDatabase ();
   void ReleaseIterator (uint32_t id);
 

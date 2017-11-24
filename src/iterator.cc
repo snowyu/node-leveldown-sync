@@ -64,7 +64,7 @@ Iterator::Iterator (
 
 Iterator::~Iterator () {
   // printf("\ndestroy Iterator:%d\n", id);
-  if (TryLockEnd()) {
+  if (TryLockEnd()) { //else already Closing
     if (!ended) {
       ended = true;
       IteratorEnd();

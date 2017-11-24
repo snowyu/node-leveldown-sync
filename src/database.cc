@@ -110,7 +110,31 @@ void Database::ReleaseIterator (uint32_t id) {
   iterators.erase(id);
 }
 
+void Database::CloseIterators () {
+  if (!iterators.empty()) {
+    for (
+      std::map< uint32_t, leveldown::Iterator * >::iterator it
+          = iterators.begin()
+    ; it != iterators.end()
+    ; ++it) {
+
+      // for each iterator still open, first check if it's already in
+      // the process of ending (ended==true means an async End() is
+      // in progress), if not, then we call End() with an empty callback
+      // function and wait for it to hit ReleaseIterator() where our
+      // CloseWorker will be invoked
+
+      leveldown::Iterator *iterator = it->second;
+      // printf("\nCloseSync: iterator:%d\n", iterator->id);
+      //should close the iterator before closing database.
+      iterator->Close();
+      // database->ReleaseIterator(iterator->id);
+    }
+  }
+}
+
 void Database::CloseDatabase () {
+  CloseIterators();
   delete db;
   db = NULL;
   if (blockCache) {
@@ -226,34 +250,11 @@ NAN_METHOD(Database::OpenSync) {
 
 NAN_METHOD(Database::CloseSync) {
   leveldown::Database* database = Nan::ObjectWrap::Unwrap<leveldown::Database>(info.This());
-  bool result = true;
   // printf("\ncloseSync\n");
 
-  if (!database->iterators.empty()) {
-    for (
-      std::map< uint32_t, leveldown::Iterator * >::iterator it
-          = database->iterators.begin()
-    ; it != database->iterators.end()
-    ; ++it) {
-
-      // for each iterator still open, first check if it's already in
-      // the process of ending (ended==true means an async End() is
-      // in progress), if not, then we call End() with an empty callback
-      // function and wait for it to hit ReleaseIterator() where our
-      // CloseWorker will be invoked
-
-      leveldown::Iterator *iterator = it->second;
-      // printf("\nCloseSync: iterator:%d\n", iterator->id);
-      //should close the iterator before closing database.
-      iterator->Close();
-      // database->ReleaseIterator(iterator->id);
-    }
-  }
   // printf("\nclosing\n");
-  if (result) {
-    database->CloseDatabase();
-    // printf("\nclosed\n");
-  }
+  database->CloseDatabase();
+  // printf("\nclosed\n");
   info.GetReturnValue().Set(true);
 }
 
