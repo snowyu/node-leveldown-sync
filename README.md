@@ -1,9 +1,9 @@
 LevelDB ![LevelDB Logo](https://camo.githubusercontent.com/35c59b1270df115851d8f50b57c7eb2d916f61d4/68747470733a2f2f302e67726176617461722e636f6d2f6176617461722f6134393862313232616563623736373834393061333862623539336363313264) [![npm](https://img.shields.io/npm/v/nosql-leveldb.svg)](https://npmjs.org/package/nosql-leveldb)
 ======================
 
-[![Build Status](https://img.shields.io/travis/snowyu/node-nosql-leveldb/master.svg)](http://travis-ci.org/snowyu/node-nosql-leveldb) 
-[![downloads](https://img.shields.io/npm/dm/nosql-leveldb.svg)](https://npmjs.org/package/nosql-leveldb) 
-[![license](https://img.shields.io/npm/l/nosql-leveldb.svg)](https://npmjs.org/package/nosql-leveldb) 
+[![Build Status](https://img.shields.io/travis/snowyu/node-nosql-leveldb/master.svg)](http://travis-ci.org/snowyu/node-nosql-leveldb)
+[![downloads](https://img.shields.io/npm/dm/nosql-leveldb.svg)](https://npmjs.org/package/nosql-leveldb)
+[![license](https://img.shields.io/npm/l/nosql-leveldb.svg)](https://npmjs.org/package/nosql-leveldb)
 
 A Low-level Node.js LevelDB binding
 -------------------------
@@ -29,6 +29,11 @@ Tested & supported platforms
     * See installation instructions for *node-gyp* dependencies [here](https://github.com/TooTallNate/node-gyp#installation), you'll need these (free) components from Microsoft to compile and run any native Node add-on in Windows.
 
 ## Chnages
+
+### v3.x
+
+* only supports above node v4.
+- remove native async methods instead of js wrapper.
 
 ### v2.1.x
 
@@ -154,7 +159,7 @@ The optional `options` argument may contain:
 
 * `'compression'` *(boolean, default: `true`)*: If `true`, all *compressible* data will be run through the Snappy compression algorithm before being stored. Snappy is very fast and shouldn't gain much speed by disabling so leave this on unless you have good reason to turn it off.
 
-* `'cacheSize'` *(number, default: `8 * 1024 * 1024` = 8MB)*: The size (in bytes) of the in-memory [LRU](http://en.wikipedia.org/wiki/Cache_algorithms#Least_Recently_Used) cache with frequently used uncompressed block contents. 
+* `'cacheSize'` *(number, default: `8 * 1024 * 1024` = 8MB)*: The size (in bytes) of the in-memory [LRU](http://en.wikipedia.org/wiki/Cache_algorithms#Least_Recently_Used) cache with frequently used uncompressed block contents.
 
 **Advanced options**
 
@@ -166,7 +171,7 @@ The following options are for advanced performance tuning. Modify them only if y
 
 * `'blockSize'` *(number, default `4096` = 4K)*: The *approximate* size of the blocks that make up the table files. The size related to uncompressed data (hence "approximate"). Blocks are indexed in the table file and entry-lookups involve reading an entire block and parsing to discover the required entry.
 
-* `'maxOpenFiles'` *(number, default: `1000`)*: The maximum number of files that LevelDB is allowed to have open at a time. If your data store is likely to have a large working set, you may increase this value to prevent file descriptor churn. To calculate the number of files required for your working set, divide your total data by 2MB, as each table file is a maximum of 2MB. 
+* `'maxOpenFiles'` *(number, default: `1000`)*: The maximum number of files that LevelDB is allowed to have open at a time. If your data store is likely to have a large working set, you may increase this value to prevent file descriptor churn. To calculate the number of files required for your working set, divide your total data by 2MB, as each table file is a maximum of 2MB.
 
 * `'blockRestartInterval'` *(number, default: `16`)*: The number of entries before restarting the "delta encoding" of keys within blocks. Each "restart" point stores the full key for the entry, between restarts, the common prefix of the keys for those entries is omitted. Restarts are similar to the concept of keyframs in video encoding and are used to minimise the amount of space required to store keys. This is particularly helpful when using deep namespacing / prefixing in your keys.
 
@@ -337,7 +342,7 @@ The callback will be called when the destroy operation is complete, with a possi
 
 > If a DB cannot be opened, you may attempt to call this method to resurrect as much of the contents of the database as possible. Some data may be lost, so be careful when calling this function on a database that contains important information.
 
-You will find information on the *repair* operation in the *LOG* file inside the store directory. 
+You will find information on the *repair* operation in the *LOG* file inside the store directory.
 
 A `repair()` can also be used to perform a compaction of the LevelDB log into table files.
 
