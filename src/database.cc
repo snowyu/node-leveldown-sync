@@ -244,7 +244,8 @@ NAN_METHOD(Database::CloseSync) {
 
       leveldown::Iterator *iterator = it->second;
       // printf("\nCloseSync: iterator:%d\n", iterator->id);
-      iterator->Free();
+      //should close the iterator before closing database.
+      iterator->Close();
       // database->ReleaseIterator(iterator->id);
     }
   }

@@ -57,7 +57,7 @@ public:
   void ReleaseTarget ();
   bool TryLockEnd ();
   void UnlockEnd ();
-  void Free ();
+  void Close ();
 
 private:
   Database* database;

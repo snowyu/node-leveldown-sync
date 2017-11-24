@@ -126,7 +126,7 @@ void Iterator::ReleaseTarget () {
   }
 }
 
-void Iterator::Free () {
+void Iterator::Close () {
   endLocker.lock();
   if (!ended) {
     ended = true;
@@ -386,13 +386,7 @@ NAN_METHOD(Iterator::EndSync) {
   Iterator* iterator = Nan::ObjectWrap::Unwrap<Iterator>(info.This());
   bool result = true;
 
-  iterator->endLocker.lock();
-  if (!iterator->ended) {
-    iterator->ended = true;
-    iterator->IteratorEnd();
-    iterator->Release();
-  }
-  iterator->endLocker.unlock();
+  iterator->Close();
 
   info.GetReturnValue().Set(result);
 }
