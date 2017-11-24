@@ -45,6 +45,7 @@
     "util-ex": "^0.2.9"
   },
   "devDependencies": {
+    "async": "^2.6.0",
     "coffee-script": "^1.12.7",
     "delayed": "^1.0.1",
     "du": "^0.1.0",
