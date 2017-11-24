@@ -6,6 +6,7 @@
 #ifndef LD_ITERATOR_H
 #define LD_ITERATOR_H
 
+#include <mutex>
 #include <node.h>
 #include <vector>
 #include <nan.h>
@@ -56,6 +57,9 @@ public:
   void IteratorEnd ();
   void Release ();
   void ReleaseTarget ();
+  bool TryLockEnd ();
+  void UnlockEnd ();
+  void Free ();
 
 private:
   Database* database;
@@ -65,6 +69,7 @@ private:
   leveldb::Slice* start;
   leveldb::Slice* target;
   std::string* end;
+  std::mutex endLocker;
   bool seeking;
   bool landed;
   bool reverse;

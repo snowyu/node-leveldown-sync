@@ -25,9 +25,9 @@ make('close db with open iterator', function (db, t, done) {
   })
 })
 
-// if (require.main === module) {
+if (require.main === module) {
   abstract.all(leveldown, test, testCommon)
-// }
+}
 
 make('iterator throws if key is not a string or buffer', function (db, t, done) {
   var keys = [null, undefined, 1, true, false]
@@ -176,11 +176,11 @@ make('close db with open iterator sync', function (db, t, done) {
   var ite = db.iterator()
   var cnt = 0
   ite.next(function loop(err, key, value) {
-    // if(cnt++ === 0)
-    //   t.error(err, 'no error from next()')
-    // else {
+    if(cnt++ === 0)
+      t.error(err, 'no error from next()')
+    else {
       t.equal(err.message, 'iterator has ended', cnt)
-    // }
+    }
     if(key !== undefined)
       ite.next(loop)
   })

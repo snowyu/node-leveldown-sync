@@ -21,8 +21,10 @@ class LevelDB
   _closeSync: ->
     @binding.closeSync()
 
+  ### ## the native close async maybe crash ...
   _close: (cb)->
     return @binding.close(cb)
+  ###
 
   _isExistsSync: (key, options) ->
     # fillCache = true
@@ -77,6 +79,12 @@ class LevelDB
     if asBuffer
       result = new Buffer(result)
     result
+
+  _put: (key, value, options, callback) ->
+    # flushSync = false
+    # if typeof options == 'object' and options.sync == true
+    #   flushSync = true
+    @binding.put key, value, options, callback
 
   _putSync: (key, value, options) ->
     # flushSync = false

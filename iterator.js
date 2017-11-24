@@ -59,6 +59,7 @@ Iterator.prototype._endSync = function () {
   return this.binding.endSync();
 }
 
+/*
 Iterator.prototype._next = function (callback) {
   var that = this
     , key
@@ -93,5 +94,5 @@ Iterator.prototype._end = function (callback) {
   delete this.cache
   this.binding.end(callback)
 }
-
+*/
 module.exports = Iterator

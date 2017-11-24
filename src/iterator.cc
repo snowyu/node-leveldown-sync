@@ -24,8 +24,6 @@ Iterator::Iterator (
   , bool keys
   , bool values
   , int limit
-  // , bool skipStart
-  // , bool skipEnd
   , std::string* lt
   , std::string* lte
   , std::string* gt
@@ -42,8 +40,6 @@ Iterator::Iterator (
   , keys(keys)
   , values(values)
   , limit(limit)
-  // , skipStart(skipStart)
-  // , skipEnd(skipEnd)
   , lt(lt)
   , lte(lte)
   , gt(gt)
@@ -66,8 +62,6 @@ Iterator::Iterator (
   nexting    = false;
   ended      = false;
   endWorker  = NULL;
-  // skipStart  = false;
-  // skipEnd    = false;
 };
 
 Iterator::~Iterator () {
@@ -95,6 +89,24 @@ Iterator::~Iterator () {
   if (gte != NULL)
     delete gte;
 };
+
+inline bool Iterator::TryLockEnd () {
+  return !ended && endLocker.try_lock();
+}
+
+inline void Iterator::UnlockEnd () {
+  endLocker.unlock();
+}
+
+void Iterator::Free () {
+  endLocker.lock();
+  if (!ended) {
+    ended = true;
+    IteratorEnd();
+    Release();
+  }
+  endLocker.unlock();
+}
 
 bool Iterator::GetIterator () {
   if (dbIterator == NULL) {
@@ -136,14 +148,6 @@ bool Iterator::GetIterator () {
     } else {
       dbIterator->SeekToFirst();
     }
-
-    // if (skipStart && dbIterator->Valid()) {
-    //   if (reverse) {
-    //     dbIterator->Prev();
-    //   } else {
-    //     dbIterator->Next();
-    //   }
-    // }
 
     return true;
   }
@@ -309,8 +313,123 @@ void checkEndCallback (Iterator* iterator) {
   }
 }
 
+//nextSync()
+//return the array(2),
+//  the first is the result array,
+//  the second is the count of the result. if count <=0 means no more data.
+NAN_METHOD(Iterator::NextSync) {
+  Iterator* iterator = Nan::ObjectWrap::Unwrap<Iterator>(info.This());
+
+  iterator->endLocker.lock();
+  if (iterator->ended) {
+    iterator->endLocker.unlock();
+    return Nan::ThrowError("iterator has ended");
+  }
+
+  iterator->nexting = true;
+  std::vector<std::pair<std::string, std::string> > result;
+  bool ok = iterator->IteratorNext(result);
+  iterator->ReleaseTarget();
+  iterator->nexting = false;
+  // checkEndCallback(iterator); //clean up & handle the next/end state
+  iterator->endLocker.unlock();
+  if (!ok) {
+    leveldb::Status status = iterator->IteratorStatus();
+    LD_METHOD_CHECK_DB_ERROR(nextSync);
+  }
+
+  size_t idx = 0;
+
+  size_t arraySize = result.size() * 2;
+  v8::Local<v8::Array> returnArray = Nan::New<v8::Array>(arraySize);
+
+  for(idx = 0; idx < result.size(); ++idx) {
+    std::pair<std::string, std::string> row = result[idx];
+    std::string key = row.first;
+    std::string value = row.second;
+
+    v8::Local<v8::Value> returnKey;
+    if (iterator->keyAsBuffer) {
+      //TODO: use NewBuffer, see database_async.cc
+      returnKey = Nan::CopyBuffer((char*)key.data(), key.size()).ToLocalChecked();
+    } else {
+      returnKey = Nan::New<v8::String>((char*)key.data(), key.size()).ToLocalChecked();
+    }
+
+    v8::Local<v8::Value> returnValue;
+    if (iterator->valueAsBuffer) {
+      //TODO: use NewBuffer, see database_async.cc
+      returnValue = Nan::CopyBuffer((char*)value.data(), value.size()).ToLocalChecked();
+    } else {
+      returnValue = Nan::New<v8::String>((char*)value.data(), value.size()).ToLocalChecked();
+    }
+
+    // put the key & value in a descending order, so that they can be .pop:ed in javascript-land
+    returnArray->Set(Nan::New<v8::Integer>(static_cast<int>(arraySize - idx * 2 - 1)), returnKey);
+    returnArray->Set(Nan::New<v8::Integer>(static_cast<int>(arraySize - idx * 2 - 2)), returnValue);
+  }
+
+
+  ssize_t s =  result.size();
+  if (!ok) s = -s;
+  v8::Local<v8::Array> returnResult = Nan::New<v8::Array>(2);
+  returnResult->Set(Nan::New<v8::Integer>(0), returnArray);
+  // when size is negated, all data has been read, so it's then finished
+  returnResult->Set(Nan::New<v8::Integer>(1), Nan::New<v8::Integer>(static_cast<int>(s)));
+  info.GetReturnValue().Set(returnResult);
+}
+
+// for an empty callback to iterator.end()
+NAN_METHOD(ITEmptyMethod) {
+}
+
+NAN_METHOD(Iterator::EndSync) {
+  Iterator* iterator = Nan::ObjectWrap::Unwrap<Iterator>(info.This());
+  bool result = true;
+
+  iterator->endLocker.lock();
+  if (!iterator->ended) {
+    iterator->ended = true;
+    // result = !iterator->nexting;
+    if (result) {
+      iterator->IteratorEnd();
+      iterator->Release();
+    }
+    iterator->endLocker.unlock();
+  }
+
+  // if (!iterator->ended) {
+  //   iterator->ended = true;
+  //   if (iterator->nexting) {
+  //     //if some async iterators executing:
+  //     //wait to the iterator done then end.
+  //     EndWorker* worker = new EndWorker(
+  //         iterator
+  //       , new Nan::Callback(Nan::New<v8::FunctionTemplate>(ITEmptyMethod)->GetFunction()) // empty callback
+  //     );
+  //     // persist to prevent accidental GC
+  //     v8::Local<v8::Object> _this = info.This();
+  //     worker->SaveToPersistent("iterator", _this);
+
+  //     // waiting for a next() to return, queue the end
+  //     iterator->endWorker = worker;
+  //     result = false;
+  //   } else {
+  //     iterator->IteratorEnd();
+  //     iterator->Release();
+  //   }
+  // }
+  info.GetReturnValue().Set(result);
+}
+
 NAN_METHOD(Iterator::Seek) {
   Iterator* iterator = Nan::ObjectWrap::Unwrap<Iterator>(info.This());
+
+  iterator->endLocker.lock();
+  if (iterator->ended) {
+    iterator->endLocker.unlock();
+    return Nan::ThrowError("iterator has ended");
+  }
 
   iterator->ReleaseTarget();
 
@@ -360,6 +479,7 @@ NAN_METHOD(Iterator::Seek) {
       }
     }
   }
+  iterator->endLocker.unlock();
 
   info.GetReturnValue().Set(info.Holder());
 }
@@ -373,15 +493,19 @@ NAN_METHOD(Iterator::Next) {
 
   v8::Local<v8::Function> callback = info[0].As<v8::Function>();
 
+  iterator->endLocker.lock();
   if (iterator->ended) {
-    LD_RETURN_CALLBACK_OR_ERROR(callback, "iterator has ended");
+    iterator->endLocker.unlock();
+    return Nan::ThrowError("iterator has ended");
   }
+
 
   NextWorker* worker = new NextWorker(
       iterator
     , new Nan::Callback(callback)
     , checkEndCallback
   );
+  //unlock it on the nextWorker.
   // persist to prevent accidental GC
   v8::Local<v8::Object> _this = info.This();
   worker->SaveToPersistent("iterator", _this);
@@ -391,66 +515,6 @@ NAN_METHOD(Iterator::Next) {
   info.GetReturnValue().Set(info.Holder());
 }
 
-//nextSync()
-//return the array(2),
-//  the first is the result array,
-//  the second is the count of the result. if count <=0 means no more data.
-NAN_METHOD(Iterator::NextSync) {
-  Iterator* iterator = Nan::ObjectWrap::Unwrap<Iterator>(info.This());
-  if (iterator->ended) {
-    return Nan::ThrowError("iterator has ended");
-  }
-
-  iterator->nexting = true;
-  std::vector<std::pair<std::string, std::string> > result;
-  bool ok = iterator->IteratorNext(result);
-  checkEndCallback(iterator); //clean up & handle the next/end state
-  if (!ok) {
-    leveldb::Status status = iterator->IteratorStatus();
-    LD_METHOD_CHECK_DB_ERROR(nextSync);
-  }
-
-  size_t idx = 0;
-
-  size_t arraySize = result.size() * 2;
-  v8::Local<v8::Array> returnArray = Nan::New<v8::Array>(arraySize);
-
-  for(idx = 0; idx < result.size(); ++idx) {
-    std::pair<std::string, std::string> row = result[idx];
-    std::string key = row.first;
-    std::string value = row.second;
-
-    v8::Local<v8::Value> returnKey;
-    if (iterator->keyAsBuffer) {
-      //TODO: use NewBuffer, see database_async.cc
-      returnKey = Nan::CopyBuffer((char*)key.data(), key.size()).ToLocalChecked();
-    } else {
-      returnKey = Nan::New<v8::String>((char*)key.data(), key.size()).ToLocalChecked();
-    }
-
-    v8::Local<v8::Value> returnValue;
-    if (iterator->valueAsBuffer) {
-      //TODO: use NewBuffer, see database_async.cc
-      returnValue = Nan::CopyBuffer((char*)value.data(), value.size()).ToLocalChecked();
-    } else {
-      returnValue = Nan::New<v8::String>((char*)value.data(), value.size()).ToLocalChecked();
-    }
-
-    // put the key & value in a descending order, so that they can be .pop:ed in javascript-land
-    returnArray->Set(Nan::New<v8::Integer>(static_cast<int>(arraySize - idx * 2 - 1)), returnKey);
-    returnArray->Set(Nan::New<v8::Integer>(static_cast<int>(arraySize - idx * 2 - 2)), returnValue);
-  }
-
-
-  ssize_t s =  result.size();
-  if (!ok) s = -s;
-  v8::Local<v8::Array> returnResult = Nan::New<v8::Array>(2);
-  returnResult->Set(Nan::New<v8::Integer>(0), returnArray);
-  // when size is negated, all data has been read, so it's then finished
-  returnResult->Set(Nan::New<v8::Integer>(1), Nan::New<v8::Integer>(static_cast<int>(s)));
-  info.GetReturnValue().Set(returnResult);
-}
-
 NAN_METHOD(Iterator::End) {
   Iterator* iterator = Nan::ObjectWrap::Unwrap<Iterator>(info.This());
 
@@ -458,7 +522,9 @@ NAN_METHOD(Iterator::End) {
     return Nan::ThrowError("end() requires a callback argument");
   }
 
+  iterator->endLocker.lock();
   if (!iterator->ended) {
+    iterator->ended = true;
     v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(info[0]);
 
     EndWorker* worker = new EndWorker(
@@ -468,7 +534,6 @@ NAN_METHOD(Iterator::End) {
     // persist to prevent accidental GC
     v8::Local<v8::Object> _this = info.This();
     worker->SaveToPersistent("iterator", _this);
-    iterator->ended = true;
 
     if (iterator->nexting) {
       // waiting for a next() to return, queue the end
@@ -477,49 +542,9 @@ NAN_METHOD(Iterator::End) {
       Nan::AsyncQueueWorker(worker);
     }
   }
+  iterator->UnlockEnd();
 
   info.GetReturnValue().Set(info.Holder());
-}
-
-// for an empty callback to iterator.end()
-NAN_METHOD(ITEmptyMethod) {
-}
-
-NAN_METHOD(Iterator::EndSync) {
-  Iterator* iterator = Nan::ObjectWrap::Unwrap<Iterator>(info.This());
-  bool result = true;
-
-  if (!iterator->ended) {
-    // result = !iterator->nexting;
-    if (result) {
-      iterator->ended = true;
-      iterator->IteratorEnd();
-      iterator->Release();
-    }
-  }
-
-  // if (!iterator->ended) {
-  //   iterator->ended = true;
-  //   if (iterator->nexting) {
-  //     //if some async iterators executing:
-  //     //wait to the iterator done then end.
-  //     EndWorker* worker = new EndWorker(
-  //         iterator
-  //       , new Nan::Callback(Nan::New<v8::FunctionTemplate>(ITEmptyMethod)->GetFunction()) // empty callback
-  //     );
-  //     // persist to prevent accidental GC
-  //     v8::Local<v8::Object> _this = info.This();
-  //     worker->SaveToPersistent("iterator", _this);
-
-  //     // waiting for a next() to return, queue the end
-  //     iterator->endWorker = worker;
-  //     result = false;
-  //   } else {
-  //     iterator->IteratorEnd();
-  //     iterator->Release();
-  //   }
-  // }
-  info.GetReturnValue().Set(result);
 }
 
 void Iterator::Init () {
@@ -589,8 +614,6 @@ NAN_METHOD(Iterator::New) {
 
   //default to forward.
   bool reverse = false;
-  // bool skipStart = false;
-  // bool skipEnd = false;
 
   if (info.Length() > 1 && info[2]->IsObject()) {
     optionsObj = v8::Local<v8::Object>::Cast(info[2]);
@@ -635,33 +658,26 @@ NAN_METHOD(Iterator::New) {
             Nan::New("highWaterMark").ToLocalChecked()))->Value();
     }
 
-    if (optionsObj->Has(Nan::New("lt").ToLocalChecked())) {
-      v8::Local<v8::Value> ltBuffer = optionsObj->Get(Nan::New("lt").ToLocalChecked());
-
-      if ((node::Buffer::HasInstance(optionsObj->Get(Nan::New("lt").ToLocalChecked()))
+    if (optionsObj->Has(Nan::New("lt").ToLocalChecked())
+        && (node::Buffer::HasInstance(optionsObj->Get(Nan::New("lt").ToLocalChecked()))
           || optionsObj->Get(Nan::New("lt").ToLocalChecked())->IsString())) {
 
-        // ignore end if it has size 0 since a Slice can't have length 0
-        if (StringOrBufferLength(ltBuffer) > 0) {
-          LD_STRING_OR_BUFFER_TO_COPY(_lt, ltBuffer, lt)
-          lt = new std::string(_ltCh_, _ltSz_);
-          delete[] _ltCh_;
-          if (reverse) {
-            if (startStr != NULL) {
-              delete[] startStr;
-              startStr = NULL;
-            }
-            if (start != NULL)
-              delete start;
-            start = new leveldb::Slice(lt->data(), lt->size());
+      v8::Local<v8::Value> ltBuffer = optionsObj->Get(Nan::New("lt").ToLocalChecked());
+
+      // ignore end if it has size 0 since a Slice can't have length 0
+      if (StringOrBufferLength(ltBuffer) > 0) {
+        LD_STRING_OR_BUFFER_TO_COPY(_lt, ltBuffer, lt)
+        lt = new std::string(_ltCh_, _ltSz_);
+        delete[] _ltCh_;
+        if (reverse) {
+          if (startStr != NULL) {
+            delete[] startStr;
+            startStr = NULL;
           }
+          if (start != NULL)
+            delete start;
+          start = new leveldb::Slice(lt->data(), lt->size());
         }
-      // } else if (ltBuffer->IsNull()) {
-      //   if (!reverse) {
-      //     skipEnd = true;
-      //   } else {
-      //     skipStart = true;
-      //   }
       }
     }
 
@@ -688,32 +704,26 @@ NAN_METHOD(Iterator::New) {
       }
     }
 
-    if (optionsObj->Has(Nan::New("gt").ToLocalChecked())) {
+    if (optionsObj->Has(Nan::New("gt").ToLocalChecked())
+        && (node::Buffer::HasInstance(optionsObj->Get(Nan::New("gt").ToLocalChecked()))
+          || optionsObj->Get(Nan::New("gt").ToLocalChecked())->IsString())) {
+
       v8::Local<v8::Value> gtBuffer = optionsObj->Get(Nan::New("gt").ToLocalChecked());
 
-      if ((node::Buffer::HasInstance(optionsObj->Get(Nan::New("gt").ToLocalChecked()))
-          || optionsObj->Get(Nan::New("gt").ToLocalChecked())->IsString())) {
-        // ignore end if it has size 0 since a Slice can't have length 0
-        if (StringOrBufferLength(gtBuffer) > 0) {
-          LD_STRING_OR_BUFFER_TO_COPY(_gt, gtBuffer, gt)
-          gt = new std::string(_gtCh_, _gtSz_);
-          delete[] _gtCh_;
-          if (!reverse) {
-            if (startStr != NULL) {
-              delete[] startStr;
-              startStr = NULL;
-            }
-            if (start != NULL)
-              delete start;
-            start = new leveldb::Slice(gt->data(), gt->size());
+      // ignore end if it has size 0 since a Slice can't have length 0
+      if (StringOrBufferLength(gtBuffer) > 0) {
+        LD_STRING_OR_BUFFER_TO_COPY(_gt, gtBuffer, gt)
+        gt = new std::string(_gtCh_, _gtSz_);
+        delete[] _gtCh_;
+        if (!reverse) {
+          if (startStr != NULL) {
+            delete[] startStr;
+            startStr = NULL;
           }
+          if (start != NULL)
+            delete start;
+          start = new leveldb::Slice(gt->data(), gt->size());
         }
-      // } else if (gtBuffer->IsNull()) {
-      //   if (!reverse) {
-      //       skipStart = true;
-      //   } else {
-      //       skipEnd = true;
-      //   }
       }
     }
 
@@ -757,8 +767,6 @@ NAN_METHOD(Iterator::New) {
     , keys
     , values
     , limit
-    // , skipStart
-    // , skipEnd
     , lt
     , lte
     , gt

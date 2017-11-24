@@ -28,6 +28,7 @@ NextWorker::~NextWorker () {}
 
 void NextWorker::Execute () {
   ok = iterator->IteratorNext(result);
+  iterator->UnlockEnd();
   if (!ok)
     SetStatus(iterator->IteratorStatus());
 }

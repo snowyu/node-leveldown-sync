@@ -36,9 +36,11 @@
       return this.binding.closeSync();
     };
 
-    LevelDB.prototype._close = function(cb) {
-      return this.binding.close(cb);
-    };
+
+    /* ## the native close async maybe crash ...
+    _close: (cb)->
+      return @binding.close(cb)
+     */
 
     LevelDB.prototype._isExistsSync = function(key, options) {
       var result;
