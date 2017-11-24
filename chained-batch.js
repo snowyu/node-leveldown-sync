@@ -4,7 +4,7 @@ const util                 = require('util')
 
 function ChainedBatch (db) {
   AbstractChainedBatch.call(this, db)
-  this.binding = db.binding.batch()
+  this.binding = db.binding.batchSync()
 }
 
 
@@ -23,8 +23,8 @@ ChainedBatch.prototype._clear = function (key) {
 }
 
 
-ChainedBatch.prototype._write = function (options, callback) {
-  this.binding.write(options, callback)
+ChainedBatch.prototype._writeSync = function (options) {
+  return this.binding.writeSync()
 }
 
 util.inherits(ChainedBatch, AbstractChainedBatch)

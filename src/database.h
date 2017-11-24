@@ -92,7 +92,6 @@ private:
   Nan::Utf8String* location;
   leveldb::DB* db;
   uint32_t currentIteratorId;
-  void(*pendingCloseWorker);
   leveldb::Cache* blockCache;
   const leveldb::FilterPolicy* filterPolicy;
 
@@ -102,16 +101,8 @@ private:
   static void WriteAfter(uv_work_t *req);
 
   static NAN_METHOD(New);
-  static NAN_METHOD(Open);
-  static NAN_METHOD(Close);
-  static NAN_METHOD(Put);
-  static NAN_METHOD(Delete);
-  static NAN_METHOD(Get);
-  static NAN_METHOD(Batch);
   static NAN_METHOD(Write);
   static NAN_METHOD(Iterator);
-  static NAN_METHOD(ApproximateSize);
-  static NAN_METHOD(CompactRange);
   static NAN_METHOD(GetProperty);
   static NAN_METHOD(ApproximateSizeSync);
   static NAN_METHOD(OpenSync);

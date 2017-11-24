@@ -13,12 +13,10 @@
 
 #include "leveldown.h"
 #include "database.h"
-#include "async.h"
 
 namespace leveldown {
 
 class Database;
-class AsyncWorker;
 
 class Iterator : public Nan::ObjectWrap {
 public:
@@ -90,7 +88,6 @@ public:
   bool valueAsBuffer;
   bool nexting;
   bool ended;
-  AsyncWorker* endWorker;
 
 private:
   bool Read (std::string& key, std::string& value);
@@ -99,8 +96,6 @@ private:
 
   static NAN_METHOD(New);
   static NAN_METHOD(Seek);
-  static NAN_METHOD(Next);
-  static NAN_METHOD(End);
   static NAN_METHOD(EndSync);
   static NAN_METHOD(NextSync);
 };

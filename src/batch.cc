@@ -3,7 +3,6 @@
 #include <nan.h>
 
 #include "database.h"
-#include "batch_async.h"
 #include "batch.h"
 #include "common.h"
 
@@ -35,7 +34,7 @@ void Batch::Init () {
   Nan::SetPrototypeMethod(tpl, "put", Batch::Put);
   Nan::SetPrototypeMethod(tpl, "del", Batch::Del);
   Nan::SetPrototypeMethod(tpl, "clear", Batch::Clear);
-  Nan::SetPrototypeMethod(tpl, "write", Batch::Write);
+  Nan::SetPrototypeMethod(tpl, "writeSync", Batch::WriteSync);
 }
 
 NAN_METHOD(Batch::New) {
@@ -127,20 +126,15 @@ NAN_METHOD(Batch::Clear) {
   info.GetReturnValue().Set(info.Holder());
 }
 
-NAN_METHOD(Batch::Write) {
+  NAN_METHOD(Batch::WriteSync) {
   Batch* batch = ObjectWrap::Unwrap<Batch>(info.Holder());
+  bool result = batch->hasData;
 
-  if (batch->hasData) {
-    Nan::Callback *callback =
-        new Nan::Callback(v8::Local<v8::Function>::Cast(info[0]));
-    BatchWriteWorker* worker  = new BatchWriteWorker(batch, callback);
-    // persist to prevent accidental GC
-    v8::Local<v8::Object> _this = info.This();
-    worker->SaveToPersistent("batch", _this);
-    Nan::AsyncQueueWorker(worker);
-  } else {
-    LD_RUN_CALLBACK(v8::Local<v8::Function>::Cast(info[0]), 0, NULL);
+  if (result) {
+    leveldb::Status status = batch->Write();
+    LD_METHOD_CHECK_DB_ERROR(writeSync)
   }
+  info.GetReturnValue().Set(result);
 }
 
 } // namespace leveldown

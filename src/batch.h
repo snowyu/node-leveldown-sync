@@ -32,7 +32,7 @@ private:
   static NAN_METHOD(Put);
   static NAN_METHOD(Del);
   static NAN_METHOD(Clear);
-  static NAN_METHOD(Write);
+  static NAN_METHOD(WriteSync);
 };
 
 } // namespace leveldown

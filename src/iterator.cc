@@ -8,7 +8,6 @@
 
 #include "database.h"
 #include "iterator.h"
-#include "iterator_async.h"
 #include "common.h"
 
 namespace leveldown {
@@ -61,7 +60,6 @@ Iterator::Iterator (
   landed     = false;
   nexting    = false;
   ended      = false;
-  endWorker  = NULL;
 };
 
 Iterator::~Iterator () {
@@ -304,15 +302,6 @@ void Iterator::ReleaseTarget () {
   }
 }
 
-void checkEndCallback (Iterator* iterator) {
-  iterator->ReleaseTarget();
-  iterator->nexting = false;
-  if (iterator->endWorker != NULL) {
-    Nan::AsyncQueueWorker(iterator->endWorker);
-    iterator->endWorker = NULL;
-  }
-}
-
 //nextSync()
 //return the array(2),
 //  the first is the result array,
@@ -398,27 +387,6 @@ NAN_METHOD(Iterator::EndSync) {
     iterator->endLocker.unlock();
   }
 
-  // if (!iterator->ended) {
-  //   iterator->ended = true;
-  //   if (iterator->nexting) {
-  //     //if some async iterators executing:
-  //     //wait to the iterator done then end.
-  //     EndWorker* worker = new EndWorker(
-  //         iterator
-  //       , new Nan::Callback(Nan::New<v8::FunctionTemplate>(ITEmptyMethod)->GetFunction()) // empty callback
-  //     );
-  //     // persist to prevent accidental GC
-  //     v8::Local<v8::Object> _this = info.This();
-  //     worker->SaveToPersistent("iterator", _this);
-
-  //     // waiting for a next() to return, queue the end
-  //     iterator->endWorker = worker;
-  //     result = false;
-  //   } else {
-  //     iterator->IteratorEnd();
-  //     iterator->Release();
-  //   }
-  // }
   info.GetReturnValue().Set(result);
 }
 
@@ -484,69 +452,6 @@ NAN_METHOD(Iterator::Seek) {
   info.GetReturnValue().Set(info.Holder());
 }
 
-NAN_METHOD(Iterator::Next) {
-  Iterator* iterator = Nan::ObjectWrap::Unwrap<Iterator>(info.This());
-
-  if (!info[0]->IsFunction()) {
-    return Nan::ThrowError("next() requires a callback argument");
-  }
-
-  v8::Local<v8::Function> callback = info[0].As<v8::Function>();
-
-  iterator->endLocker.lock();
-  if (iterator->ended) {
-    iterator->endLocker.unlock();
-    return Nan::ThrowError("iterator has ended");
-  }
-
-
-  NextWorker* worker = new NextWorker(
-      iterator
-    , new Nan::Callback(callback)
-    , checkEndCallback
-  );
-  //unlock it on the nextWorker.
-  // persist to prevent accidental GC
-  v8::Local<v8::Object> _this = info.This();
-  worker->SaveToPersistent("iterator", _this);
-  iterator->nexting = true;
-  Nan::AsyncQueueWorker(worker);
-
-  info.GetReturnValue().Set(info.Holder());
-}
-
-NAN_METHOD(Iterator::End) {
-  Iterator* iterator = Nan::ObjectWrap::Unwrap<Iterator>(info.This());
-
-  if (!info[0]->IsFunction()) {
-    return Nan::ThrowError("end() requires a callback argument");
-  }
-
-  iterator->endLocker.lock();
-  if (!iterator->ended) {
-    iterator->ended = true;
-    v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(info[0]);
-
-    EndWorker* worker = new EndWorker(
-        iterator
-      , new Nan::Callback(callback)
-    );
-    // persist to prevent accidental GC
-    v8::Local<v8::Object> _this = info.This();
-    worker->SaveToPersistent("iterator", _this);
-
-    if (iterator->nexting) {
-      // waiting for a next() to return, queue the end
-      iterator->endWorker = worker;
-    } else {
-      Nan::AsyncQueueWorker(worker);
-    }
-  }
-  iterator->UnlockEnd();
-
-  info.GetReturnValue().Set(info.Holder());
-}
-
 void Iterator::Init () {
   v8::Local<v8::FunctionTemplate> tpl =
       Nan::New<v8::FunctionTemplate>(Iterator::New);
@@ -554,8 +459,6 @@ void Iterator::Init () {
   tpl->SetClassName(Nan::New("Iterator").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
   Nan::SetPrototypeMethod(tpl, "seek", Iterator::Seek);
-  Nan::SetPrototypeMethod(tpl, "next", Iterator::Next);
-  Nan::SetPrototypeMethod(tpl, "end", Iterator::End);
   Nan::SetPrototypeMethod(tpl, "endSync", Iterator::EndSync);
   Nan::SetPrototypeMethod(tpl, "nextSync", Iterator::NextSync);
 }

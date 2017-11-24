@@ -88,6 +88,10 @@
       return result;
     };
 
+    LevelDB.prototype._put = function(key, value, options, callback) {
+      return this.binding.put(key, value, options, callback);
+    };
+
     LevelDB.prototype._putSync = function(key, value, options) {
       return this.binding.putSync(key, value, options);
     };

@@ -35,8 +35,8 @@
   "main": "leveldb.js",
   "dependencies": {
     "abstract-error": "^1.0.1",
-    "abstract-iterator": "~0.11.5",
-    "abstract-nosql": "~2.1.0",
+    "abstract-iterator": "~3.0.0",
+    "abstract-nosql": "~3.0.0",
     "bindings": "~1.3.0",
     "fast-future": "~1.0.0",
     "inherits-ex": "^1.0.6",
