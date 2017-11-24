@@ -27,8 +27,9 @@ Database::Database (const v8::Local<v8::Value>& from)
   , filterPolicy(NULL) {};
 
 Database::~Database () {
-  if (db != NULL)
-    delete db;
+  CloseDatabase();
+  // if (db != NULL)
+  //   delete db;
   delete location;
 };
 
