@@ -88,10 +88,6 @@
       return result;
     };
 
-    LevelDB.prototype._put = function(key, value, options, callback) {
-      return this.binding.put(key, value, options, callback);
-    };
-
     LevelDB.prototype._putSync = function(key, value, options) {
       return this.binding.putSync(key, value, options);
     };
@@ -106,6 +102,35 @@
 
     LevelDB.prototype._approximateSizeSync = function(start, end) {
       return this.binding.approximateSizeSync(start, end);
+    };
+
+    LevelDB.prototype.compactRangeSync = function(start, end) {
+      return this.binding.compactRangeSync(start, end);
+    };
+
+    LevelDB.prototype.compactRangeAsync = function(start, end, callback) {
+      var that;
+      that = this;
+      return setImmediate(function() {
+        var err, result;
+        result = void 0;
+        try {
+          result = that.compactRangeSync(start, end);
+        } catch (error) {
+          err = error;
+          callback(err);
+          return;
+        }
+        callback(null, result);
+      });
+    };
+
+    LevelDB.prototype.compactRange = function(start, end, callback) {
+      if (typeof callback !== 'function') {
+        return this.compactRangeSync(start, end);
+      } else {
+        return this.compactRangeAsync(start, end, callback);
+      }
     };
 
     LevelDB.prototype._chainedBatch = function() {
@@ -129,14 +154,48 @@
       return binding.repairSync(location);
     };
 
+    LevelDB.repairAsync = function(location, callback) {
+      var that;
+      that = this;
+      return setImmediate(function() {
+        var err, result;
+        result = void 0;
+        try {
+          result = that.repairSync(location);
+        } catch (error) {
+          err = error;
+          callback(err);
+          return;
+        }
+        callback(null, result);
+      });
+    };
+
+    LevelDB.destroyAsync = function(location, callback) {
+      var that;
+      that = this;
+      return setImmediate(function() {
+        var err, result;
+        result = void 0;
+        try {
+          result = that.destroySync(location);
+        } catch (error) {
+          err = error;
+          callback(err);
+          return;
+        }
+        callback(null, result);
+      });
+    };
+
     LevelDB.destroy = function(location, callback) {
       if (typeof location !== 'string') {
         throw new InvalidArgumentError('destroy() requires a location string argument');
       }
       if (typeof callback !== 'function') {
-        return LevelDB.destroySync(location);
+        return this.destroySync(location);
       } else {
-        return binding.destroy(location, callback);
+        return this.destroyAsync(location, callback);
       }
     };
 
@@ -145,9 +204,9 @@
         throw new InvalidArgumentError('repair() requires a location string argument');
       }
       if (typeof callback !== 'function') {
-        return LevelDB.repairSync(location);
+        return this.repairSync(location);
       } else {
-        return binding.repair(location, callback);
+        return this.repairAsync(location, callback);
       }
     };
 

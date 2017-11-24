@@ -227,6 +227,7 @@ NAN_METHOD(Database::OpenSync) {
 NAN_METHOD(Database::CloseSync) {
   leveldown::Database* database = Nan::ObjectWrap::Unwrap<leveldown::Database>(info.This());
   bool result = true;
+  // printf("\ncloseSync\n");
 
   if (!database->iterators.empty()) {
     for (
@@ -242,11 +243,15 @@ NAN_METHOD(Database::CloseSync) {
       // CloseWorker will be invoked
 
       leveldown::Iterator *iterator = it->second;
+      // printf("\nCloseSync: iterator:%d\n", iterator->id);
       iterator->Free();
+      // database->ReleaseIterator(iterator->id);
     }
   }
+  // printf("\nclosing\n");
   if (result) {
     database->CloseDatabase();
+    // printf("\nclosed\n");
   }
   info.GetReturnValue().Set(true);
 }

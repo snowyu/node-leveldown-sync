@@ -61,7 +61,9 @@ public:
 
 private:
   Database* database;
+public:
   uint32_t id;
+private:
   leveldb::Iterator* dbIterator;
   leveldb::ReadOptions* options;
   leveldb::Slice* start;

@@ -63,6 +63,17 @@ Iterator::Iterator (
 };
 
 Iterator::~Iterator () {
+  // printf("\ndestroy Iterator:%d\n", id);
+  if (TryLockEnd()) {
+    if (!ended) {
+      ended = true;
+      IteratorEnd();
+      Release();
+    }
+    UnlockEnd();
+  }
+  // printf("\ndestroy Iterator:free snapshot ok\n");
+
   delete options;
   ReleaseTarget();
   if (start != NULL) {
@@ -88,12 +99,31 @@ Iterator::~Iterator () {
     delete gte;
 };
 
-inline bool Iterator::TryLockEnd () {
-  return !ended && endLocker.try_lock();
+void Iterator::IteratorEnd () {
+  //TODO: could return it->status()
+  delete dbIterator;
+  dbIterator = NULL;
 }
 
-inline void Iterator::UnlockEnd () {
-  endLocker.unlock();
+void Iterator::Release () {
+  if (options->snapshot) {
+    // printf("\nIterator::Release:%d\n", id);
+    database->ReleaseSnapshot(options->snapshot);
+    options->snapshot = NULL;
+    database->ReleaseIterator(id);
+  }
+  // printf("\nIterator::Release:%d done\n", id);
+}
+
+void Iterator::ReleaseTarget () {
+  if (target != NULL) {
+
+    if (!target->empty())
+      delete[] target->data();
+
+    delete target;
+    target = NULL;
+  }
 }
 
 void Iterator::Free () {
@@ -103,6 +133,14 @@ void Iterator::Free () {
     IteratorEnd();
     Release();
   }
+  endLocker.unlock();
+}
+
+inline bool Iterator::TryLockEnd () {
+  return !ended && endLocker.try_lock();
+}
+
+inline void Iterator::UnlockEnd () {
   endLocker.unlock();
 }
 
@@ -280,28 +318,6 @@ leveldb::Status Iterator::IteratorStatus () {
   return dbIterator->status();
 }
 
-void Iterator::IteratorEnd () {
-  //TODO: could return it->status()
-  delete dbIterator;
-  dbIterator = NULL;
-  database->ReleaseSnapshot(options->snapshot);
-}
-
-void Iterator::Release () {
-  database->ReleaseIterator(id);
-}
-
-void Iterator::ReleaseTarget () {
-  if (target != NULL) {
-
-    if (!target->empty())
-      delete[] target->data();
-
-    delete target;
-    target = NULL;
-  }
-}
-
 //nextSync()
 //return the array(2),
 //  the first is the result array,
@@ -309,9 +325,7 @@ void Iterator::ReleaseTarget () {
 NAN_METHOD(Iterator::NextSync) {
   Iterator* iterator = Nan::ObjectWrap::Unwrap<Iterator>(info.This());
 
-  iterator->endLocker.lock();
-  if (iterator->ended) {
-    iterator->endLocker.unlock();
+  if (!iterator->TryLockEnd()) {
     return Nan::ThrowError("iterator has ended");
   }
 
@@ -368,10 +382,6 @@ NAN_METHOD(Iterator::NextSync) {
   info.GetReturnValue().Set(returnResult);
 }
 
-// for an empty callback to iterator.end()
-NAN_METHOD(ITEmptyMethod) {
-}
-
 NAN_METHOD(Iterator::EndSync) {
   Iterator* iterator = Nan::ObjectWrap::Unwrap<Iterator>(info.This());
   bool result = true;
@@ -379,13 +389,10 @@ NAN_METHOD(Iterator::EndSync) {
   iterator->endLocker.lock();
   if (!iterator->ended) {
     iterator->ended = true;
-    // result = !iterator->nexting;
-    if (result) {
-      iterator->IteratorEnd();
-      iterator->Release();
-    }
-    iterator->endLocker.unlock();
+    iterator->IteratorEnd();
+    iterator->Release();
   }
+  iterator->endLocker.unlock();
 
   info.GetReturnValue().Set(result);
 }
@@ -393,9 +400,7 @@ NAN_METHOD(Iterator::EndSync) {
 NAN_METHOD(Iterator::Seek) {
   Iterator* iterator = Nan::ObjectWrap::Unwrap<Iterator>(info.This());
 
-  iterator->endLocker.lock();
-  if (iterator->ended) {
-    iterator->endLocker.unlock();
+  if (!iterator->TryLockEnd()) {
     return Nan::ThrowError("iterator has ended");
   }
 

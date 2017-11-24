@@ -36,7 +36,6 @@
           , "src/database.cc"
           , "src/iterator.cc"
           , "src/leveldown.cc"
-          , "src/leveldown_async.cc"
         ]
     }]
 }

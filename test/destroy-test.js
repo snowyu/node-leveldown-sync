@@ -22,8 +22,9 @@ test('test destroy non-existant directory sync', function (t) {
 })
 
 test('test destroy non-existant directory', function (t) {
-  leveldown.destroy('/1/2/3/4', function () {
-    t.equal(arguments.length, 0, 'no arguments returned on callback')
+  leveldown.destroy('/1/2/3/4', function (err, result) {
+    t.notOk(err, 'destroy db should be no error')
+    t.ok(result, 'destroy db should be ok')
     t.end()
   })
 })

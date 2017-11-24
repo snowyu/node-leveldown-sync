@@ -80,12 +80,6 @@ class LevelDB
       result = new Buffer(result)
     result
 
-  _put: (key, value, options, callback) ->
-    # flushSync = false
-    # if typeof options == 'object' and options.sync == true
-    #   flushSync = true
-    @binding.put key, value, options, callback
-
   _putSync: (key, value, options) ->
     # flushSync = false
     # if typeof options == 'object' and options.sync == true
@@ -107,6 +101,27 @@ class LevelDB
   _approximateSizeSync: (start, end) ->
     @binding.approximateSizeSync start, end
 
+  compactRangeSync: (start, end) ->
+    @binding.compactRangeSync start, end
+
+  compactRangeAsync: (start, end, callback) ->
+    that = @
+    setImmediate ->
+      result = undefined
+      try
+        result = that.compactRangeSync(start, end)
+      catch err
+        callback err
+        return
+      callback null, result
+      return
+
+  compactRange: (start, end, callback) ->
+    if typeof callback != 'function'
+      @compactRangeSync start, end
+    else
+      @compactRangeAsync start, end, callback
+
   _chainedBatch: -> new ChainedBatch(this)
 
   getProperty: (property) ->
@@ -119,20 +134,45 @@ class LevelDB
 
   @destroySync: (location) -> binding.destroySync location
   @repairSync: (location) -> binding.repairSync location
+
+  @repairAsync: (location, callback) ->
+    that = @
+    setImmediate ->
+      result = undefined
+      try
+        result = that.repairSync(location)
+      catch err
+        callback err
+        return
+      callback null, result
+      return
+
+  @destroyAsync: (location, callback) ->
+    that = @
+    setImmediate ->
+      result = undefined
+      try
+        result = that.destroySync(location)
+      catch err
+        callback err
+        return
+      callback null, result
+      return
+
   @destroy: (location, callback) ->
     if typeof location != 'string'
       throw new InvalidArgumentError('destroy() requires a location string argument')
     if typeof callback != 'function'
-      LevelDB.destroySync location
+      @destroySync location
     else
-      binding.destroy location, callback
+      @destroyAsync location, callback
 
   @repair: (location, callback) ->
     if typeof location != 'string'
       throw new InvalidArgumentError('repair() requires a location string argument')
     if typeof callback != 'function'
-      LevelDB.repairSync location
+      @repairSync location
     else
-      binding.repair location, callback
+      @repairAsync location, callback
 
 module.exports = LevelDB

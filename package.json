@@ -35,8 +35,8 @@
   "main": "leveldb.js",
   "dependencies": {
     "abstract-error": "^1.0.1",
-    "abstract-iterator": "~3.0.0",
-    "abstract-nosql": "~3.0.0",
+    "abstract-iterator": "^3.0.0",
+    "abstract-nosql": "^3.0.0",
     "bindings": "~1.3.0",
     "fast-future": "~1.0.0",
     "inherits-ex": "^1.0.6",
@@ -46,7 +46,8 @@
   },
   "devDependencies": {
     "coffee-script": "^1.12.7",
-    "du": "~0.1.0",
+    "delayed": "^1.0.1",
+    "du": "^0.1.0",
     "events-ex": "^1.1.2",
     "faucet": "0.0.1",
     "iota-array": "^1.0.0",
