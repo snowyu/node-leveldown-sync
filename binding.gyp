@@ -2,29 +2,29 @@
     "targets": [{
       "target_name": "leveldown"
     # , "cflags": ['-g'] # embed debug info: node-gyp build -d
-    # , 'xcode_settings': {
-    #   'CLANG_CXX_LANGUAGE_STANDARD': 'c++11',
-    #   'CLANG_CXX_LIBRARY': 'libc++',
-    #   # 'MACOSX_DEPLOYMENT_TARGET': '10.7',
-    #   # 'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
-    #   # 'GCC_ENABLE_CPP_RTTI': 'YES',
-    #   'OTHER_CFLAGS': [
-    #     '-mmacosx-version-min=10.7',
-    #     # '-fexceptions',
-    #     # '-Wall',
-    #     '-O3'
-    #   ]
-    # }
+    , 'xcode_settings': {
+      'CLANG_CXX_LANGUAGE_STANDARD': 'c++11',
+      'CLANG_CXX_LIBRARY': 'libc++',
+      'MACOSX_DEPLOYMENT_TARGET': '10.7',
+      # 'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+      # 'GCC_ENABLE_CPP_RTTI': 'YES',
+      'OTHER_CFLAGS': [
+        '-mmacosx-version-min=10.7', # only supports above node v7
+        # '-fexceptions',
+        # '-Wall',
+        '-O3'
+      ]
+    }
     , "conditions": [
-          ['OS == "mac"',
-            {
-              'ccflags': [
-                      '-mmacosx-version-min=10.7',
-                      '-std=c++11',
-                      '-stdlib=libc++'
-              ]
-            }
-          ],
+          # ['OS == "mac"',
+          #   {
+          #     'ccflags': [
+          #             '-mmacosx-version-min=10.7',
+          #             '-std=c++11',
+          #             '-stdlib=libc++'
+          #     ]
+          #   }
+          # ],
           ["OS == 'win'", {
               "defines": [
                   "_HAS_EXCEPTIONS=0"
