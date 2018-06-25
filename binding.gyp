@@ -1,7 +1,19 @@
 {
     "targets": [{
       "target_name": "leveldown"
-    # , "cflags": ['-g'] # embed debug info: node-gyp build -d
+    , "cflags": ['-g'] # embed debug info: node-gyp build -d
+    , 'xcode_settings': {
+      'CLANG_CXX_LANGUAGE_STANDARD': 'c++11',
+      'CLANG_CXX_LIBRARY': 'libc++',
+      # 'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+      # 'GCC_ENABLE_CPP_RTTI': 'YES',
+      'OTHER_CPLUSPLUSFLAGS': [
+        '-mmacosx-version-min=10.7',
+        # '-fexceptions',
+        # '-Wall',
+        '-O3'
+      ]
+    }
     , "conditions": [
           ["OS == 'win'", {
               "defines": [
