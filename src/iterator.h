@@ -6,7 +6,7 @@
 #ifndef LD_ITERATOR_H
 #define LD_ITERATOR_H
 
-#include <mutex>
+// #include <mutex>
 #include <node.h>
 #include <vector>
 #include <nan.h>
@@ -69,7 +69,7 @@ private:
   leveldb::Slice* start;
   leveldb::Slice* target;
   std::string* end;
-  std::mutex endLocker;
+  // std::mutex endLocker;
   bool seeking;
   bool landed;
   bool reverse;

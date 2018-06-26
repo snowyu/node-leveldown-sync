@@ -127,21 +127,21 @@ void Iterator::ReleaseTarget () {
 }
 
 void Iterator::Close () {
-  endLocker.lock();
+  // endLocker.lock();
   if (!ended) {
     ended = true;
     IteratorEnd();
     Release();
   }
-  endLocker.unlock();
+  // endLocker.unlock();
 }
 
 inline bool Iterator::TryLockEnd () {
-  return !ended && endLocker.try_lock();
+  return !ended ;//&& endLocker.try_lock();
 }
 
 inline void Iterator::UnlockEnd () {
-  endLocker.unlock();
+  // endLocker.unlock();
 }
 
 bool Iterator::GetIterator () {
@@ -335,7 +335,7 @@ NAN_METHOD(Iterator::NextSync) {
   iterator->ReleaseTarget();
   iterator->nexting = false;
   // checkEndCallback(iterator); //clean up & handle the next/end state
-  iterator->endLocker.unlock();
+  // iterator->endLocker.unlock();
   if (!ok) {
     leveldb::Status status = iterator->IteratorStatus();
     LD_METHOD_CHECK_DB_ERROR(nextSync);
@@ -446,7 +446,7 @@ NAN_METHOD(Iterator::Seek) {
       }
     }
   }
-  iterator->endLocker.unlock();
+  // iterator->endLocker.unlock();
 
   info.GetReturnValue().Set(info.Holder());
 }
