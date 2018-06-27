@@ -33,12 +33,10 @@ Tested & supported platforms
 ### v3.x
 
 * only supports above node v4.
-- remove native async methods instead of js wrapper.
+- KISS: remove native async methods instead of js wrapper.
   * many thread bugs on native async methods.
     * lack mutex locker.
     * iterators or database gc makes nodejs crash.
-+ add the mutex locker
-  * **Note**: nodejs@8.0 already use a couple of threads (the V8 single thread and a bunch of C++ worker threads plus the main-thread of libuv).
 
 ### v2.1.x
 
