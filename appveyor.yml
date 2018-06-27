@@ -34,8 +34,6 @@ install:
   - echo %PATH%
   - node --version
   - npm --version
-  - coffee -v
-  - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version)
   # Typical npm stuff.
   - npm/.bin/npm install
   #- npm install
