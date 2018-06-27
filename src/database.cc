@@ -113,31 +113,38 @@ void Database::ReleaseIterator (uint32_t id) {
 
 void Database::CloseIterators () {
   if (!iterators.empty()) {
-    for (
-      std::map< uint32_t, leveldown::Iterator * >::iterator it
-          = iterators.begin()
-    ; it != iterators.end()
-    ; ++it) {
+    std::map< uint32_t, leveldown::Iterator * >::iterator it = iterators.begin();
+    while (it != iterators.end()) {
+    // for (
+    //   std::map< uint32_t, leveldown::Iterator * >::iterator it
+    //       = iterators.begin()
+    // ; it != iterators.end()
+    // ; ++it) {
 
       // for each iterator still open, first check if it's already in
       // the process of ending (ended==true means an async End() is
       // in progress), if not, then we call End() with an empty callback
       // function and wait for it to hit ReleaseIterator() where our
       // CloseWorker will be invoked
+      // printf("\nCloseIterators1: iterator:%d\n", it->first);
 
       leveldown::Iterator *iterator = it->second;
-      // printf("\nCloseSync: iterator:%d\n", iterator->id);
+      ++it;
+      // printf("\nCloseIterators: iterator:%d\n", iterator->id);
       //should close the iterator before closing database.
+      //The close will iterators.erase(id)
       iterator->Close();
-      // database->ReleaseIterator(iterator->id);
     }
   }
 }
 
 void Database::CloseDatabase () {
   CloseIterators();
+  // printf("\nClosedIterators\n");
+
   delete db;
   db = NULL;
+  // printf("\ndestroy dbIterator:%d\n", dbIterator);
   if (blockCache) {
     delete blockCache;
     blockCache = NULL;
@@ -251,11 +258,8 @@ NAN_METHOD(Database::OpenSync) {
 
 NAN_METHOD(Database::CloseSync) {
   leveldown::Database* database = Nan::ObjectWrap::Unwrap<leveldown::Database>(info.This());
-  // printf("\ncloseSync\n");
 
-  // printf("\nclosing\n");
   database->CloseDatabase();
-  // printf("\nclosed\n");
   info.GetReturnValue().Set(true);
 }
 

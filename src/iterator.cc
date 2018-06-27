@@ -63,13 +63,10 @@ Iterator::Iterator (
 };
 
 Iterator::~Iterator () {
-  // printf("\ndestroy Iterator:%d\n", id);
+  // printf("\ndestroy Iterator:%d,%d\n", id, ended);
   if (TryLockEnd()) { //else already Closing
-    if (!ended) {
-      ended = true;
-      IteratorEnd();
-      Release();
-    }
+    IteratorEnd();
+    Release();
     UnlockEnd();
   }
   // printf("\ndestroy Iterator:free snapshot ok\n");
@@ -100,6 +97,8 @@ Iterator::~Iterator () {
 };
 
 void Iterator::IteratorEnd () {
+  // printf("\ndestroy dbIterator:%d\n", dbIterator);
+  ended = true;
   //TODO: could return it->status()
   delete dbIterator;
   dbIterator = NULL;
@@ -129,7 +128,7 @@ void Iterator::ReleaseTarget () {
 void Iterator::Close () {
   // endLocker.lock();
   if (!ended) {
-    ended = true;
+    // ended = true;
     IteratorEnd();
     Release();
   }
